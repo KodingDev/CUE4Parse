@@ -38,7 +38,7 @@ namespace CUE4Parse.UE4.AssetRegistry
                 }
                 default:
                 {
-                    var reader = new FAssetRegistryReader(Ar, header);
+                    using var reader = new FAssetRegistryReader(Ar, header);
                     Load(reader);
                     break;
                 }

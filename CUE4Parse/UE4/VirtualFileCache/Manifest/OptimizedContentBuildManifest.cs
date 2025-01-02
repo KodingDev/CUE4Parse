@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-using CUE4Parse.Compression;
 using CUE4Parse.UE4.Readers;
+using Ionic.Zlib;
 
 namespace CUE4Parse.UE4.VirtualFileCache.Manifest
 {
@@ -50,7 +50,10 @@ namespace CUE4Parse.UE4.VirtualFileCache.Manifest
                 {
                     data = new byte[dataSizeUncompressed];
                     var compressed = reader.ReadBytes(dataSizeCompressed);
-                    ZlibHelper.Decompress(compressed, 0, compressed.Length, data, 0, data.Length);
+                    using var compressedStream = new MemoryStream(compressed);
+                    using var zlib = new ZlibStream(compressedStream, CompressionMode.Decompress);
+                    zlib.Read(data, 0, dataSizeUncompressed);
+                    // ZlibHelper.Decompress(compressed, 0, compressed.Length, data, 0, data.Length);
                     break;
                 }
                 case EManifestStorageFlags.Encrypted:

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CUE4Parse_Conversion.Materials;
 
@@ -28,7 +29,22 @@ namespace CUE4Parse_Conversion.Meshes
 
             Parallel.ForEach(Materials, material =>
             {
-                lock (_material) material.TryWriteToDir(baseDirectory, out _, out _);
+                try
+                {
+                    lock (_material) material.TryWriteToDir(baseDirectory, out _, out _);
+                }
+                catch (IOException e)
+                {
+                    var errorCode = Marshal.GetHRForException(e) & ((1 << 16) - 1);
+                    if (errorCode == 32 || errorCode == 33)
+                    {
+                        Console.WriteLine($"Material is already in use, ignoring write to dir: {baseDirectory}");
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             });
 
             savedFilePath = FixAndCreatePath(baseDirectory, FileName);

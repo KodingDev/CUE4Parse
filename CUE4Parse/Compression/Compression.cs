@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.IO.Compression;
 using System.Runtime.CompilerServices;
 
 using CUE4Parse.UE4.Exceptions;
@@ -9,6 +8,7 @@ using CUE4Parse.UE4.Readers;
 using K4os.Compression.LZ4;
 
 using ZstdSharp;
+using Ionic.Zlib;
 
 namespace CUE4Parse.Compression
 {
@@ -38,7 +38,10 @@ namespace CUE4Parse.Compression
                     Buffer.BlockCopy(compressed, compressedOffset, uncompressed, uncompressedOffset, compressedSize);
                     return;
                 case CompressionMethod.Zlib:
-                    ZlibHelper.Decompress(compressed, compressedOffset, compressedSize, uncompressed, uncompressedOffset, uncompressedSize, reader);
+                    var zlib = new ZlibStream(srcStream, CompressionMode.Decompress);
+                    zlib.Read(uncompressed, uncompressedOffset, uncompressedSize);
+                    zlib.Dispose();
+                    // ZlibHelper.Decompress(compressed, compressedOffset, compressedSize, uncompressed, uncompressedOffset, uncompressedSize, reader);
                     return;
                 case CompressionMethod.Gzip:
                     var gzip = new GZipStream(srcStream, CompressionMode.Decompress);

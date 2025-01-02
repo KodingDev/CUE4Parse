@@ -23,6 +23,7 @@
     <PackageReference Include="Blake3" Version="2.0.0" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.5.0" />
     <PackageReference Include="Infrablack.UE4Config" Version="0.7.2.97" />
+    <PackageReference Include="DotNetZip" Version="1.16.0" />
     <PackageReference Include="LZMA-SDK" Version="22.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OffiUtils" Version="2.0.1" />
@@ -35,10 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\ACE7Key.bin" />
+    <None Remove="Resources\ACE7Key.bin" LogicalName="CUE4Parse.Resources.ACE7Key.bin" />
     <EmbeddedResource Include="Resources\ACE7Key.bin" />
     <None Remove="Resources\PUBGNameHashMap.json" />
-    <EmbeddedResource Include="Resources\PUBGNameHashMap.json" />
+    <EmbeddedResource Include="Resources\PUBGNameHashMap.json" LogicalName="CUE4Parse.Resources.PUBGNameHashMap.json" />
   </ItemGroup>
 
   <PropertyGroup>
