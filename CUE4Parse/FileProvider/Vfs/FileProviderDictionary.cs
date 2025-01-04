@@ -68,7 +68,9 @@ namespace CUE4Parse.FileProvider.Vfs
         {
             if (IsCaseInsensitive)
                 key = key.ToLowerInvariant();
-            foreach (var files in _indicesBag)
+            
+            // Newest first (added last)
+            foreach (var files in _indicesBag.Reverse())
             {
                 if (files.TryGetValue(key, out value))
                     return true;

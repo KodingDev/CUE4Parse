@@ -185,7 +185,7 @@ namespace CUE4Parse.FileProvider.Vfs
         {
             var countNewMounts = 0;
             var tasks = new LinkedList<Task>();
-            foreach (var reader in _unloadedVfs.Keys)
+            foreach (var reader in _unloadedVfs.Keys.OrderBy(it => it.Path))
             {
                 VerifyGlobalData(reader);
 
@@ -231,7 +231,7 @@ namespace CUE4Parse.FileProvider.Vfs
             var tasks = new LinkedList<Task<IAesVfsReader?>>();
             foreach (var (guid, key) in keys)
             {
-                foreach (var reader in _unloadedVfs.Keys.Where(it => it.EncryptionKeyGuid == guid))
+                foreach (var reader in _unloadedVfs.Keys.Where(it => it.EncryptionKeyGuid == guid).OrderBy(it => it.Path))
                 {
                     if (reader.Game == EGame.GAME_FragPunk && reader.Name.Contains("global")) reader.AesKey = key;
                     VerifyGlobalData(reader);
