@@ -158,11 +158,14 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
 
         private static FRichCurve ConvertToRaw(IKeyTimeAdapter keyTimeAdapter, IKeyDataAdapter keyDataAdapter, int numKeys, ERichCurveExtrapolation preInfinityExtrap, ERichCurveExtrapolation postInfinityExtrap)
         {
+            const float smallNumber = 1e-8f;
+
             var curve = new FRichCurve();
             curve.DefaultValue = 3.402823466e+38f;
             curve.PreInfinityExtrap = preInfinityExtrap;
             curve.PostInfinityExtrap = postInfinityExtrap;
             curve.Keys = new FRichCurveKey[numKeys];
+
             for (var keyIndex = 0; keyIndex < numKeys; keyIndex++)
             {
                 var handle = keyDataAdapter.GetKeyDataHandle(keyIndex);
@@ -180,9 +183,15 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
                 key.TangentWeightMode = keyDataAdapter.GetKeyTangentWeightMode(keyIndex);
                 key.Time = keyTimeAdapter.GetTime(keyIndex);
                 key.Value = keyDataAdapter.GetKeyValue(handle);
-                key.ArriveTangent = keyDataAdapter.GetKeyArriveTangent(handle);
+
+                var arriveTangent = keyDataAdapter.GetKeyArriveTangent(handle);
+                var leaveTangent = keyDataAdapter.GetKeyLeaveTangent(handle);
+
+                // Clean up very small values that are effectively zero
+                key.ArriveTangent = Math.Abs(arriveTangent) < smallNumber ? 0.0f : arriveTangent;
+                key.LeaveTangent = Math.Abs(leaveTangent) < smallNumber ? 0.0f : leaveTangent;
+
                 key.ArriveTangentWeight = keyDataAdapter.GetKeyArriveTangentWeight(handle);
-                key.LeaveTangent = keyDataAdapter.GetKeyLeaveTangent(handle);
                 key.LeaveTangentWeight = keyDataAdapter.GetKeyLeaveTangentWeight(handle);
                 curve.Keys[keyIndex] = key;
             }
