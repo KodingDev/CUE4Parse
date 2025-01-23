@@ -185,7 +185,7 @@ namespace CUE4Parse.FileProvider.Vfs
         {
             var countNewMounts = 0;
             var tasks = new LinkedList<Task>();
-            foreach (var reader in _unloadedVfs.Keys.OrderBy(it => it.Path))
+            foreach (var reader in _unloadedVfs.Keys)
             {
                 VerifyGlobalData(reader);
 
@@ -228,11 +228,10 @@ namespace CUE4Parse.FileProvider.Vfs
         public async Task<int> SubmitKeysAsync(IEnumerable<KeyValuePair<FGuid, FAesKey>> keys)
         {
             var countNewMounts = 0;
-            var completed = new LinkedList<IAesVfsReader?>();
+            var tasks = new LinkedList<Task<IAesVfsReader?>>();
             foreach (var (guid, key) in keys)
             {
-                foreach (var reader in _unloadedVfs.Keys.Where(it => it.EncryptionKeyGuid == guid)
-                             .OrderBy(it => it.Path))
+                foreach (var reader in _unloadedVfs.Keys.Where(it => it.EncryptionKeyGuid == guid))
                 {
                     if (reader.Game == EGame.GAME_FragPunk && reader.Name.Contains("global")) reader.AesKey = key;
                     VerifyGlobalData(reader);
@@ -240,29 +239,30 @@ namespace CUE4Parse.FileProvider.Vfs
                     if (!reader.HasDirectoryIndex)
                         continue;
 
-                    try
+                    tasks.AddLast(Task.Run(() =>
                     {
-                        reader.MountTo(_files, IsCaseInsensitive, key, VfsMounted);
-                        _unloadedVfs.TryRemove(reader, out _);
-                        _mountedVfs[reader] = null;
-                        Interlocked.Increment(ref countNewMounts);
-                        completed.AddLast(reader);
-                        continue;
-                    }
-                    catch (InvalidAesKeyException)
-                    {
-                        // Ignore this
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Warning(e,
-                            $"Uncaught exception while loading pak file {reader.Path.SubstringAfterLast('/')}");
-                    }
-
-                    completed.AddLast((IAesVfsReader?)null);
+                        try
+                        {
+                            reader.MountTo(_files, IsCaseInsensitive, key, VfsMounted);
+                            _unloadedVfs.TryRemove(reader, out _);
+                            _mountedVfs[reader] = null;
+                            Interlocked.Increment(ref countNewMounts);
+                            return reader;
+                        }
+                        catch (InvalidAesKeyException)
+                        {
+                            // Ignore this
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Warning(e, $"Uncaught exception while loading pak file {reader.Path.SubstringAfterLast('/')}");
+                        }
+                        return null;
+                    }));
                 }
             }
 
+            var completed = await Task.WhenAll(tasks).ConfigureAwait(false);
             foreach (var it in completed)
             {
                 var key = it?.AesKey;
