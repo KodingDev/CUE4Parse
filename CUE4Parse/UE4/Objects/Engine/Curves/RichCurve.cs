@@ -91,9 +91,13 @@ namespace CUE4Parse.UE4.Objects.Engine.Curves
 
         public float Time;
         public float Value;
+        [JsonIgnore] // These just don't decode properly in Marvel Rivals
         public float ArriveTangent;
+        [JsonIgnore] // These just don't decode properly in Marvel Rivals
         public float ArriveTangentWeight;
+        [JsonIgnore] // These just don't decode properly in Marvel Rivals
         public float LeaveTangent;
+        [JsonIgnore] // These just don't decode properly in Marvel Rivals
         public float LeaveTangentWeight;
 
         public FRichCurveKey(float time, float value)
