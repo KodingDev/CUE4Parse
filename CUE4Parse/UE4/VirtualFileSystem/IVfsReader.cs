@@ -18,14 +18,13 @@ namespace CUE4Parse.UE4.VirtualFileSystem
         public bool HasDirectoryIndex { get; }
         public string MountPoint { get; }
         public bool IsConcurrent { get; set; }
-        public bool IsMounted { get; }
 
         public VersionContainer Versions { get; set; }
         public EGame Game { get; set; }
         public FPackageFileVersion Ver { get; set; }
 
         public IReadOnlyDictionary<string, GameFile> Mount(bool caseInsensitive = false);
-        public void MountTo(FileProviderDictionary files, bool caseInsensitive, EventHandler<int>? vfsMounted = null);
+        public void MountTo(FileProviderDictionary files, EventHandler<int>? vfsMounted = null);
 
         public abstract byte[] Extract(VfsEntry entry);
     }

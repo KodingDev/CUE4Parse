@@ -378,7 +378,10 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
             }
 
             if (FUE5ReleaseStreamObjectVersion.Get(Ar) < FUE5ReleaseStreamObjectVersion.Type.RemovingTessellation && !stripDataFlags.IsClassDataStripped((byte) EClassDataStripFlag.CDSF_AdjacencyData))
-                AdjacencyIndexBuffer = new FMultisizeIndexContainer(Ar);
+            {
+                if (Ar.Game != EGame.GAME_GTATheTrilogyDefinitiveEdition)
+                    AdjacencyIndexBuffer = new FMultisizeIndexContainer(Ar);
+            }
 
             if (HasClothData())
                 ClothVertexBuffer = new FSkeletalMeshVertexClothBuffer(Ar);
@@ -387,7 +390,7 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
             {
                 _ = new FMultisizeIndexContainer(Ar);
             }
-            
+
             var skinWeightProfilesData = new FSkinWeightProfilesData(Ar);
 
             if (Ar.Versions["SkeletalMesh.HasRayTracingData"])
