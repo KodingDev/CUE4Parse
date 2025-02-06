@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using CUE4Parse.FileProvider.Objects;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
@@ -86,6 +87,8 @@ namespace CUE4Parse.UE4.VirtualFileSystem
                 {
                     versionStartIndex++;
                     var versionString = Name.Substring(versionStartIndex, versionEndIndex - versionStartIndex);
+                    versionString = Regex.Replace(versionString, "[^\\d]", "");
+
                     if (int.TryParse(versionString, out var chunkVersionSigned) && chunkVersionSigned >= 1)
                     {
                         // Increment by one so that the first patch file still gets more priority than the base pak file
