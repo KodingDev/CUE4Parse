@@ -23,7 +23,6 @@ namespace CUE4Parse.FileProvider
 
         /// <summary>
         /// The files available in this provider in dictionary with their full path as key.
-        /// If <see cref="IsCaseInsensitive"/> is set those keys are in lower case while the Path property of a <see cref="GameFile"/> remains in proper case
         /// </summary>
         public FileProviderDictionary Files { get; }
 
@@ -73,11 +72,12 @@ namespace CUE4Parse.FileProvider
         public TypeMappings? MappingsForGame { get; }
 
         /// <summary>
-        /// Whether this file provider supports case-insensitive file lookups.
-        /// Has influence to the behaviour of <see cref="Files"/> and <see cref="FixPath"/>
-        /// TODO: refactor this crappy ToLower workaround
+        /// Comparison method used for file lookups<br/>
+        /// Individual archive readers may use their own comparison methods if provided during mounting<br/>
+        /// Has influence on <see cref="this"/> and <see cref="TryFindGameFile"/> and basically every other method that uses paths<br/>
+        /// It is <see cref="StringComparer.Ordinal"/> (case-sensitive) by default
         /// </summary>
-        public bool IsCaseInsensitive { get; }
+        public StringComparer PathComparer { get; }
 
         /// <summary>
         /// the name of the unreal project
@@ -103,7 +103,7 @@ namespace CUE4Parse.FileProvider
         /// <param name="path">The path of the game file</param>
         /// <param name="file">The file if it was found; otherwise the default value</param>
         /// <returns>true if the file could be found; false otherwise</returns>
-        public bool TryFindGameFile(string path, [MaybeNullWhen(false)] out GameFile file);
+        public bool TryGetGameFile(string path, [MaybeNullWhen(false)] out GameFile file);
 
         public int LoadLocalization(ELanguage language = ELanguage.English, CancellationToken cancellationToken = default);
 
@@ -117,14 +117,10 @@ namespace CUE4Parse.FileProvider
 
         /// <summary>
         /// Attempts to bring the passed path into the correct format.
-        /// If the <see cref="IsCaseInsensitive"/> flag is set the result will be in lowercase.
         /// </summary>
         /// <param name="path">The file path to be fixed</param>
         /// <returns>The file path translated into the correct format</returns>
         public string FixPath(string path);
-
-        /// <inheritdoc cref="FixPath(string)"/>
-        public string FixPath(string path, StringComparison comparisonType);
 
         #region SaveAsset Methods
         /// <summary>

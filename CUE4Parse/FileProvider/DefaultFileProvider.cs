@@ -15,12 +15,35 @@ namespace CUE4Parse.FileProvider
         private readonly DirectoryInfo[] _extraDirectories;
         private readonly SearchOption _searchOption;
 
+        [Obsolete("Use the other constructors with explicit StringComparer")]
         public DefaultFileProvider(string directory, SearchOption searchOption, bool isCaseInsensitive = false, VersionContainer? versions = null)
             : this(new DirectoryInfo(directory), searchOption, isCaseInsensitive, versions) { }
+        [Obsolete("Use the other constructors with explicit StringComparer")]
         public DefaultFileProvider(DirectoryInfo directory, SearchOption searchOption, bool isCaseInsensitive = false, VersionContainer? versions = null)
             : this(directory, [], searchOption, isCaseInsensitive, versions) { }
+        [Obsolete("Use the other constructors with explicit StringComparer")]
         public DefaultFileProvider(DirectoryInfo directory, DirectoryInfo[] extraDirectories, SearchOption searchOption, bool isCaseInsensitive = false, VersionContainer? versions = null)
-            : base(isCaseInsensitive, versions)
+            : this(directory, extraDirectories, searchOption, versions, isCaseInsensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal) { }
+
+        public DefaultFileProvider(
+            string directory,
+            SearchOption searchOption,
+            VersionContainer? versions = null,
+            StringComparer? pathComparer = null)
+            : this(new DirectoryInfo(directory), searchOption, versions, pathComparer) { }
+        public DefaultFileProvider(
+            DirectoryInfo directory,
+            SearchOption searchOption,
+            VersionContainer? versions = null,
+            StringComparer? pathComparer = null)
+            : this(directory, [], searchOption, versions, pathComparer) { }
+        public DefaultFileProvider(
+            DirectoryInfo directory,
+            DirectoryInfo[] extraDirectories,
+            SearchOption searchOption,
+            VersionContainer? versions = null,
+            StringComparer? pathComparer = null)
+            : base(versions, pathComparer)
         {
             _workingDirectory = directory;
             _extraDirectories = extraDirectories;
@@ -46,7 +69,7 @@ namespace CUE4Parse.FileProvider
 
         private Dictionary<string, GameFile> IterateFiles(DirectoryInfo directory, SearchOption option)
         {
-            var osFiles = new Dictionary<string, GameFile>();
+            var osFiles = new Dictionary<string, GameFile>(PathComparer);
             if (!directory.Exists) return osFiles;
 
             // Look for .uproject file to get the correct mount point
@@ -77,12 +100,11 @@ namespace CUE4Parse.FileProvider
                 }
 
                 // Register local file only if it has a known extension, we don't need every file
-                if (!GameFile.Ue4KnownExtensions.Contains(upperExt, StringComparer.OrdinalIgnoreCase))
+                if (!GameFile.UeKnownExtensions.Contains(upperExt, StringComparer.OrdinalIgnoreCase))
                     continue;
 
                 var osFile = new OsGameFile(_workingDirectory, file, mountPoint, Versions);
-                if (Files.IsCaseInsensitive) osFiles[osFile.Path.ToLowerInvariant()] = osFile;
-                else osFiles[osFile.Path] = osFile;
+                osFiles[osFile.Path] = osFile;
             }
 
             return osFiles;

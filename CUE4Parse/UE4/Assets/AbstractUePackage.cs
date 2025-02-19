@@ -23,9 +23,10 @@ public abstract class AbstractUePackage : UObject, IPackage
     public abstract FNameEntrySerialized[] NameMap { get; }
     public abstract int ImportMapLength { get; }
     public abstract int ExportMapLength { get; }
-    public abstract Lazy<UObject>[] ExportsLazy { get; }
 
+    public Lazy<UObject>[] ExportsLazy { get; protected init; }
     public bool IsFullyLoaded { get; protected init; }
+
     public bool CanDeserialize
     {
         get
@@ -116,7 +117,8 @@ public abstract class AbstractUePackage : UObject, IPackage
     public bool HasFlags(EPackageFlags flags) => Summary.PackageFlags.HasFlag(flags);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public abstract UObject? GetExportOrNull(string name, StringComparison comparisonType = StringComparison.Ordinal);
+    public abstract int GetExportIndex(string name, StringComparison comparisonType = StringComparison.Ordinal);
+
     public abstract ResolvedObject? ResolvePackageIndex(FPackageIndex? index);
 
     public override string ToString() => Name;
@@ -125,7 +127,7 @@ public abstract class AbstractUePackage : UObject, IPackage
 [JsonConverter(typeof(ResolvedObjectConverter))]
 public abstract class ResolvedObject : IObject
 {
-    public readonly IPackage Package;
+    protected readonly IPackage Package;
 
     public ResolvedObject(IPackage package, int exportIndex = -1)
     {
@@ -138,7 +140,9 @@ public abstract class ResolvedObject : IObject
     public virtual ResolvedObject? Outer => null;
     public virtual ResolvedObject? Class => null;
     public virtual ResolvedObject? Super => null;
-    public virtual Lazy<UObject>? Object => null;
+    public virtual Lazy<UObject>? Object => ExportIndex >= 0 && ExportIndex < Package.ExportsLazy.Length
+        ? Package.ExportsLazy[ExportIndex]
+        : null;
 
     public string GetFullName(bool includeOuterMostName = true, bool includeClassPackage = false)
     {

@@ -25,7 +25,6 @@ namespace CUE4Parse.UE4.Assets
         public override FNameEntrySerialized[] NameMap { get; }
         public override int ImportMapLength => ImportMap.Length;
         public override int ExportMapLength => ExportMap.Length;
-        public override Lazy<UObject>[] ExportsLazy { get; }
 
         public readonly ulong[]? ImportedPublicExportHashes;
         public readonly FPackageObjectIndex[] ImportMap;
@@ -162,7 +161,7 @@ namespace CUE4Parse.UE4.Assets
                 }
                 else exportBundleHeaders = null;
 
-                importedPackageIds = storeEntry?.ImportedPackages ?? Array.Empty<FPackageId>();
+                importedPackageIds = storeEntry?.ImportedPackages ?? [];
 
                 cookedHeaderSize = (int) summary.CookedHeaderSize;
                 allExportDataOffset = (int) summary.HeaderSize;
@@ -239,7 +238,7 @@ namespace CUE4Parse.UE4.Assets
                     // Create
                     var obj = ConstructObject(ResolveObjectIndex(export.ClassIndex)?.Object?.Value as UStruct, this, export.ObjectFlags);
                     obj.Name = CreateFNameFromMappedName(export.ObjectName).Text;
-                    obj.Outer = (ResolveObjectIndex(export.OuterIndex) as ResolvedExportObject)?.ExportObject.Value ?? this;
+                    obj.Outer = (ResolveObjectIndex(export.OuterIndex) as ResolvedExportObject)?.Object?.Value ?? this;
                     obj.Super = ResolveObjectIndex(export.SuperIndex) as ResolvedExportObject;
                     obj.Template = ResolveObjectIndex(export.TemplateIndex) as ResolvedExportObject;
                     obj.Flags |= export.ObjectFlags; // We give loaded objects the RF_WasLoaded flag in ConstructObject, so don't remove it again in here
@@ -320,17 +319,17 @@ namespace CUE4Parse.UE4.Assets
             return packageIds;
         }
 
-        public override UObject? GetExportOrNull(string name, StringComparison comparisonType = StringComparison.Ordinal)
+        public override int GetExportIndex(string name, StringComparison comparisonType = StringComparison.Ordinal)
         {
             for (var i = 0; i < ExportMap.Length; i++)
             {
                 if (CreateFNameFromMappedName(ExportMap[i].ObjectName).Text.Equals(name, comparisonType))
                 {
-                    return ExportsLazy[i].Value;
+                    return i;
                 }
             }
 
-            return null;
+            return -1;
         }
 
         public override ResolvedObject? ResolvePackageIndex(FPackageIndex? index)
@@ -364,7 +363,7 @@ namespace CUE4Parse.UE4.Assets
                 }
             }
 
-            if (index.IsPackageImport && Provider != null)
+            if (index.IsPackageImport)
             {
                 if (ImportedPublicExportHashes != null)
                 {
@@ -385,17 +384,14 @@ namespace CUE4Parse.UE4.Assets
                         }
                     }
                 }
-                else
+                else foreach (var pkg in ImportedPackages.Value)
                 {
-                    foreach (var pkg in ImportedPackages.Value)
+                    if (pkg == null) continue;
+                    for (int exportIndex = 0; exportIndex < pkg.ExportMap.Length; ++exportIndex)
                     {
-                        if (pkg == null) continue;
-                        for (int exportIndex = 0; exportIndex < pkg.ExportMap.Length; ++exportIndex)
+                        if (pkg.ExportMap[exportIndex].GlobalImportIndex == index)
                         {
-                            if (pkg.ExportMap[exportIndex].GlobalImportIndex == index)
-                            {
-                                return new ResolvedExportObject(exportIndex, pkg);
-                            }
+                            return new ResolvedExportObject(exportIndex, pkg);
                         }
                     }
                 }
@@ -412,20 +408,17 @@ namespace CUE4Parse.UE4.Assets
         private class ResolvedExportObject : ResolvedObject
         {
             public FExportMapEntry ExportMapEntry;
-            public Lazy<UObject> ExportObject;
 
             public ResolvedExportObject(int exportIndex, IoPackage package) : base(package, exportIndex)
             {
                 if (exportIndex >= package.ExportMap.Length) return;
                 ExportMapEntry = package.ExportMap[exportIndex];
-                ExportObject = package.ExportsLazy[exportIndex];
             }
 
             public override FName Name => ((IoPackage) Package).CreateFNameFromMappedName(ExportMapEntry.ObjectName);
             public override ResolvedObject Outer => ((IoPackage) Package).ResolveObjectIndex(ExportMapEntry.OuterIndex) ?? new ResolvedLoadedObject((UObject) Package);
             public override ResolvedObject? Class => ((IoPackage) Package).ResolveObjectIndex(ExportMapEntry.ClassIndex);
             public override ResolvedObject? Super => ((IoPackage) Package).ResolveObjectIndex(ExportMapEntry.SuperIndex);
-            public override Lazy<UObject> Object => ExportObject;
         }
 
         private class ResolvedScriptObject : ResolvedObject

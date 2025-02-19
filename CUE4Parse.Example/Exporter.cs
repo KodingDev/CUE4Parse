@@ -59,7 +59,7 @@ public static class Exporter
         OodleHelper.Initialize(OodleHelper.OODLE_DLL_NAME);
 
         var version = new VersionContainer(EGame.GAME_UE5_6, ETexturePlatform.DesktopMobile);
-        var provider = new DefaultFileProvider(_archiveDirectory, SearchOption.TopDirectoryOnly, false, version)
+        var provider = new DefaultFileProvider(_archiveDirectory, SearchOption.TopDirectoryOnly, version)
         {
             MappingsContainer = new FileUsmapTypeMappingsProvider(_mapping)
         };
@@ -94,8 +94,7 @@ public static class Exporter
 
             Parallel.ForEach(packages, package =>
             {
-                if (!package.IsUE4Package) return;
-                var pkg = provider.LoadPackage(package);
+                if (!provider.TryLoadPackage(package, out var pkg)) return;
 
                 // optimized way of checking for exports type without loading most of them
                 for (var i = 0; i < pkg.ExportMapLength; i++)

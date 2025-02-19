@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -12,15 +13,14 @@ namespace CUE4Parse.UE4.VirtualFileSystem
 {
     public abstract partial class AbstractVfsReader : IVfsReader
     {
-        protected static readonly ILogger log = Log.ForContext<AbstractVfsReader>();
+        protected static readonly ILogger Log = Serilog.Log.ForContext<AbstractVfsReader>();
 
         public string Path { get; }
         public string Name { get; }
         public long ReadOrder { get; private set; }
 
         public IReadOnlyDictionary<string, GameFile> Files { get; protected set; }
-        public virtual int FileCount => Files.Count;
-
+        public int FileCount => Files.Count;
 
         public abstract string MountPoint { get; protected set; }
         public abstract bool HasDirectoryIndex { get; }
@@ -47,8 +47,7 @@ namespace CUE4Parse.UE4.VirtualFileSystem
             Files = new Dictionary<string, GameFile>();
         }
 
-        public abstract IReadOnlyDictionary<string, GameFile> Mount(bool caseInsensitive = false);
-
+        public abstract void Mount(StringComparer pathComparer);
         public abstract byte[] Extract(VfsEntry entry);
 
         protected void ValidateMountPoint(ref string mountPoint)
@@ -62,7 +61,7 @@ namespace CUE4Parse.UE4.VirtualFileSystem
             {
                 if (Globals.LogVfsMounts)
                 {
-                    log.Warning($"\"{Name}\" has strange mount point \"{mountPoint}\", mounting to root");
+                    Log.Warning($"\"{Name}\" has strange mount point \"{mountPoint}\", mounting to root");
                 }
 
                 mountPoint = "/";

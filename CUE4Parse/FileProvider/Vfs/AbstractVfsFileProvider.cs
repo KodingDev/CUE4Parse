@@ -52,14 +52,14 @@ namespace CUE4Parse.FileProvider.Vfs
 
         public IoGlobalData? GlobalData { get; private set; }
 
-        public IReadOnlyDictionary<FPackageId, GameFile> FilesById => Files.byId;
+        public IReadOnlyDictionary<FPackageId, GameFile> FilesById => Files.ById;
 
         public IAesVfsReader.CustomEncryptionDelegate? CustomEncryption { get; set; }
         public event EventHandler<int>? VfsRegistered;
         public event EventHandler<int>? VfsMounted;
         public event EventHandler<int>? VfsUnmounted;
 
-        protected AbstractVfsFileProvider(bool isCaseInsensitive = false, VersionContainer? versions = null) : base(isCaseInsensitive, versions)
+        protected AbstractVfsFileProvider(VersionContainer? versions = null, StringComparer? pathComparer = null) : base(versions, pathComparer)
         {
             CustomEncryption = versions?.Game switch
             {
@@ -223,7 +223,7 @@ namespace CUE4Parse.FileProvider.Vfs
                 {
                     try
                     {
-                        reader.MountTo(Files, VfsMounted);
+                        reader.MountTo(Files, PathComparer, VfsMounted);
                         _unloadedVfs.TryRemove(reader, out _);
                         _mountedVfs[reader] = null;
                         Interlocked.Increment(ref countNewMounts);
@@ -270,7 +270,7 @@ namespace CUE4Parse.FileProvider.Vfs
                     {
                         try
                         {
-                            reader.MountTo(Files, key, VfsMounted);
+                            reader.MountTo(Files, PathComparer, key, VfsMounted);
                             _unloadedVfs.TryRemove(reader, out _);
                             _mountedVfs[reader] = null;
                             Interlocked.Increment(ref countNewMounts);
@@ -304,9 +304,9 @@ namespace CUE4Parse.FileProvider.Vfs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IAesVfsReader GetArchive(string archiveName, StringComparison comparison = StringComparison.Ordinal)
         {
-            var c = (IAesVfsReader x) => x.Name.Equals(archiveName, comparison);
-            return MountedVfs.FirstOrDefault(c) ??
-                   UnloadedVfs.FirstOrDefault(c) ??
+            var predicate = (IAesVfsReader x) => x.Name.Equals(archiveName, comparison);
+            return MountedVfs.FirstOrDefault(predicate) ??
+                   UnloadedVfs.FirstOrDefault(predicate) ??
                    throw new KeyNotFoundException($"There is no archive file with the name \"{archiveName}\"");
         }
 
@@ -324,7 +324,6 @@ namespace CUE4Parse.FileProvider.Vfs
             return archive != null;
         }
 
-        public GameFile this[string path, string archiveName] => this[path, archiveName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal];
         public GameFile this[string path, string archiveName, StringComparison comparison = StringComparison.Ordinal] => this[path, GetArchive(archiveName, comparison)];
         public GameFile this[string path, IAesVfsReader archive]
             => TryGetGameFile(path, archive.Files, out var file)
@@ -332,7 +331,7 @@ namespace CUE4Parse.FileProvider.Vfs
                 : throw new KeyNotFoundException($"There is no game file with the path \"{path}\" in \"{archive.Name}\"");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFindGameFile(string path, string archiveName, [MaybeNullWhen(false)] out GameFile file, StringComparison comparison = StringComparison.Ordinal)
+        public bool TryGetGameFile(string path, string archiveName, [MaybeNullWhen(false)] out GameFile file, StringComparison comparison = StringComparison.Ordinal)
         {
             try
             {
@@ -393,7 +392,7 @@ namespace CUE4Parse.FileProvider.Vfs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySavePackage(string path, string archiveName, [MaybeNullWhen(false)] out IReadOnlyDictionary<string, byte[]> data, StringComparison comparison = StringComparison.Ordinal)
         {
-            if (TryFindGameFile(path, archiveName, out var file, comparison))
+            if (TryGetGameFile(path, archiveName, out var file, comparison))
             {
                 return TrySavePackage(file, out data);
             }
@@ -455,9 +454,9 @@ namespace CUE4Parse.FileProvider.Vfs
         }
         public void UnloadNonStreamedVfs()
         {
-            var onDemandFiles = new Dictionary<string, GameFile>();
+            var onDemandFiles = new Dictionary<string, GameFile>(PathComparer);
             foreach (var (path, vfs) in Files)
-                if (vfs is StreamedGameFile) // || vfs is OsGameFile ??
+                if (vfs is StreamedGameFile or OsGameFile)
                     onDemandFiles[path] = vfs;
 
             UnloadAllVfs();

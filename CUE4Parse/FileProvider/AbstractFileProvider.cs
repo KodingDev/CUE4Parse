@@ -43,7 +43,9 @@ namespace CUE4Parse.FileProvider
         protected static readonly ILogger Log = Serilog.Log.ForContext<IFileProvider>();
 
         public VersionContainer Versions { get; }
-        public FileProviderDictionary Files { get; private set; }
+        public StringComparer PathComparer { get; }
+
+        public FileProviderDictionary Files { get; }
         public IDictionary<string, string> VirtualPaths { get; }
         public IDictionary<string, IDictionary<string, string>> LocalizedResources { get; }
         public CustomConfigIni DefaultGame { get; }
@@ -56,14 +58,15 @@ namespace CUE4Parse.FileProvider
         public bool UseLazyPackageSerialization { get; set; } = true;
 
         public TypeMappings? MappingsForGame => MappingsContainer?.MappingsForGame;
-        public bool IsCaseInsensitive => Files.IsCaseInsensitive;
 
-        protected AbstractFileProvider(bool isCaseInsensitive = false, VersionContainer? versions = null)
+        protected AbstractFileProvider(VersionContainer? versions = null, StringComparer? pathComparer = null)
         {
             Versions = versions ?? VersionContainer.DEFAULT_VERSION_CONTAINER;
-            Files = new FileProviderDictionary(isCaseInsensitive);
-            VirtualPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            LocalizedResources = new Dictionary<string, IDictionary<string, string>>();
+            PathComparer = pathComparer ?? StringComparer.Ordinal;
+
+            Files = new FileProviderDictionary();
+            VirtualPaths = new Dictionary<string, string>(PathComparer);
+            LocalizedResources = new Dictionary<string, IDictionary<string, string>>(PathComparer);
             DefaultGame = new CustomConfigIni(nameof(DefaultGame));
             DefaultEngine = new CustomConfigIni(nameof(DefaultEngine));
         }
@@ -133,8 +136,8 @@ namespace CUE4Parse.FileProvider
                     }
 
                     _projectName = t.SubstringBefore('/');
-                    if (_projectName.Equals("midnightsuns", StringComparison.OrdinalIgnoreCase))
-                        _projectName = "codagame";
+                    if (PathComparer.Equals(_projectName, "MidnightSuns"))
+                        _projectName = "CodaGame";
                 }
                 return _projectName;
             }
@@ -145,8 +148,8 @@ namespace CUE4Parse.FileProvider
         {
             var fixedPath = FixPath(path);
             if (!collection.TryGetValue(fixedPath, out file) && // any extension
-                !collection.TryGetValue(fixedPath.SubstringBeforeWithLast('.') + GameFile.Ue4PackageExtensions[1], out file) && // umap
-                !collection.TryGetValue(IsCaseInsensitive ? path.ToLowerInvariant() : path, out file)) // in case FixPath broke something
+                !collection.TryGetValue(fixedPath.SubstringBeforeWithLast('.') + GameFile.UePackageExtensions[1], out file) && // umap
+                !collection.TryGetValue(path, out file)) // in case FixPath broke something
             {
                 file = null;
             }
@@ -160,7 +163,7 @@ namespace CUE4Parse.FileProvider
                 : throw new KeyNotFoundException($"There is no game file with the path \"{path}\"");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryFindGameFile(string path, [MaybeNullWhen(false)] out GameFile file)
+        public bool TryGetGameFile(string path, [MaybeNullWhen(false)] out GameFile file)
         {
             try
             {
@@ -411,13 +414,13 @@ namespace CUE4Parse.FileProvider
 
         protected bool LoadIniConfigs()
         {
-            if (TryFindGameFile("/Game/Config/DefaultGame.ini", out var defaultGame))
+            if (TryGetGameFile("/Game/Config/DefaultGame.ini", out var defaultGame))
             {
                 if (defaultGame is VfsEntry { Vfs: IAesVfsReader aesVfsReader }) DefaultGame.EncryptionKeyGuid = aesVfsReader.EncryptionKeyGuid;
                 if (defaultGame.TryCreateReader(out var gameAr)) DefaultGame.Read(new StreamReader(gameAr));
                 gameAr?.Dispose();
             }
-            if (TryFindGameFile("/Game/Config/DefaultEngine.ini", out var defaultEngine))
+            if (TryGetGameFile("/Game/Config/DefaultEngine.ini", out var defaultEngine))
             {
                 if (defaultEngine is VfsEntry { Vfs: IAesVfsReader aesVfsReader }) DefaultEngine.EncryptionKeyGuid = aesVfsReader.EncryptionKeyGuid;
                 if (defaultEngine.TryCreateReader(out var engineAr)) DefaultEngine.Read(new StreamReader(engineAr));
@@ -441,29 +444,28 @@ namespace CUE4Parse.FileProvider
             return DefaultGame.Sections.Any(x => x.Name == "/Script/EngineSettings.GeneralProjectSettings");
         }
 
-        public string FixPath(string path) => FixPath(path, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        public string FixPath(string path, StringComparison comparisonType)
+        public string FixPath(string path)
         {
             path = path.Replace('\\', '/');
-            if (path[0] == '/')
-                path = path[1..];
+            if (path[0] == '/') path = path[1..]; // remove leading slash
+
             var lastPart = path.SubstringAfterLast('/');
             // This part is only for FSoftObjectPaths and not really needed anymore internally, but it's still in here for user input
             if (lastPart.Contains('.') && lastPart.SubstringBefore('.') == lastPart.SubstringAfter('.'))
                 path = string.Concat(path.SubstringBeforeWithLast('/'), lastPart.SubstringBefore('.'));
             if (path[^1] != '/' && !lastPart.Contains('.'))
-                path += "." + GameFile.Ue4PackageExtensions[0];
+                path += "." + GameFile.UePackageExtensions[0]; // uasset
 
             var ret = path;
             var root = path.SubstringBefore('/');
             var tree = path.SubstringAfter('/');
-            if (root.Equals("Game", comparisonType) || root.Equals("Engine", comparisonType))
+            if (PathComparer.Equals(root, "Game") || PathComparer.Equals(root, "Engine"))
             {
-                var projectName = root.Equals("Engine", comparisonType) ? "Engine" : ProjectName;
+                var projectName = PathComparer.Equals(root, "Engine") ? "Engine" : ProjectName;
                 var root2 = tree.SubstringBefore('/');
-                if (root2.Equals("Config", comparisonType) ||
-                    root2.Equals("Content", comparisonType) ||
-                    root2.Equals("Plugins", comparisonType))
+                if (PathComparer.Equals(root2, "Config") ||
+                    PathComparer.Equals(root2, "Content") ||
+                    PathComparer.Equals(root2, "Plugins"))
                 {
                     ret = string.Concat(projectName, '/', tree);
                 }
@@ -472,7 +474,7 @@ namespace CUE4Parse.FileProvider
                     ret = string.Concat(projectName, "/Content/", tree);
                 }
             }
-            else if (root.Equals(ProjectName, StringComparison.OrdinalIgnoreCase))
+            else if (PathComparer.Equals(root, ProjectName))
             {
                 // everything should be good
             }
@@ -480,12 +482,12 @@ namespace CUE4Parse.FileProvider
             {
                 ret = string.Concat(use, "/Content/", tree);
             }
-            else if (ProjectName.Equals("FORTNITEGAME", StringComparison.OrdinalIgnoreCase))
+            else if (PathComparer.Equals(ProjectName, "FortniteGame"))
             {
                 ret = string.Concat(ProjectName, $"/Plugins/GameFeatures/{root}/Content/", tree);
             }
 
-            return comparisonType == StringComparison.OrdinalIgnoreCase ? ret.ToLowerInvariant() : ret;
+            return ret;
         }
 
         #region SaveAsset Methods
@@ -505,7 +507,7 @@ namespace CUE4Parse.FileProvider
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySaveAsset(string path, [MaybeNullWhen(false)] out byte[] data)
         {
-            if (TryFindGameFile(path, out var file))
+            if (TryGetGameFile(path, out var file))
             {
                 return TrySaveAsset(file, out data);
             }
@@ -533,7 +535,7 @@ namespace CUE4Parse.FileProvider
         public bool TryCreateReader(string path, [MaybeNullWhen(false)] out FArchive reader)
         {
             reader = null;
-            if (TryFindGameFile(path, out var file))
+            if (TryGetGameFile(path, out var file))
             {
                 reader = file.SafeCreateReader();
             }
@@ -554,11 +556,12 @@ namespace CUE4Parse.FileProvider
 
         public async Task<IPackage> LoadPackageAsync(GameFile file)
         {
-            Files.FindPayloads(file, out var uexp, out var ubulk, out var uptnl);
+            if (!file.IsUePackage) throw new ArgumentException("cannot load non-UE package", nameof(file));
+            Files.FindPayloads(file, out var uexp, out var ubulks, out var uptnls);
 
             var uasset = await file.CreateReaderAsync().ConfigureAwait(false);
-            var lazyUbulk = ubulk != null ? new Lazy<FArchive?>(() => ubulk.TryCreateReader(out var reader) ? reader : null) : null;
-            var lazyUptnl = uptnl != null ? new Lazy<FArchive?>(() => uptnl.TryCreateReader(out var reader) ? reader : null) : null;
+            var lazyUbulk = ubulks.Count > 0 ? new Lazy<FArchive?>(() => ubulks[0].TryCreateReader(out var reader) ? reader : null) : null;
+            var lazyUptnl = uptnls.Count > 0 ? new Lazy<FArchive?>(() => uptnls[0].TryCreateReader(out var reader) ? reader : null) : null;
 
             switch (file)
             {
@@ -575,7 +578,7 @@ namespace CUE4Parse.FileProvider
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryLoadPackage(string path, [MaybeNullWhen(false)] out IPackage package)
         {
-            if (TryFindGameFile(path, out var file))
+            if (TryGetGameFile(path, out var file))
             {
                 return TryLoadPackage(file, out package);
             }
@@ -612,12 +615,18 @@ namespace CUE4Parse.FileProvider
 
         public async Task<IReadOnlyDictionary<string, byte[]>> SavePackageAsync(GameFile file)
         {
-            Files.FindPayloads(file, out var uexp, out var ubulk, out var uptnl);
+            Files.FindPayloads(file, out var uexp, out var ubulks, out var uptnls, true);
 
             var dict = new Dictionary<string, byte[]> { { file.Path, await file.ReadAsync().ConfigureAwait(false) } };
             if (uexp != null && uexp.TryRead(out var uexpData)) dict[uexp.Path] = uexpData;
-            if (ubulk != null && ubulk.TryRead(out var ubulkData)) dict[ubulk.Path] = ubulkData;
-            if (uptnl != null && uptnl.TryRead(out var uptnlData)) dict[uptnl.Path] = uptnlData;
+
+            foreach (var ubulk in ubulks)
+                if (ubulk.TryRead(out var ubulkData))
+                    dict[ubulk.Path] = ubulkData;
+
+            foreach (var uptnl in uptnls)
+                if (uptnl.TryRead(out var uptnlData))
+                    dict[uptnl.Path] = uptnlData;
 
             return dict;
         }
@@ -625,7 +634,7 @@ namespace CUE4Parse.FileProvider
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySavePackage(string path, [MaybeNullWhen(false)] out IReadOnlyDictionary<string, byte[]> data)
         {
-            if (TryFindGameFile(path, out var file))
+            if (TryGetGameFile(path, out var file))
             {
                 return TrySavePackage(file, out data);
             }
@@ -689,7 +698,7 @@ namespace CUE4Parse.FileProvider
             ArgumentException.ThrowIfNullOrEmpty(nameof(objectName), objectName);
 
             var package = await LoadPackageAsync(path).ConfigureAwait(false);
-            return package.GetExport<T>(objectName, IsCaseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            return package.GetExport<T>(objectName);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
