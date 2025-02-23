@@ -26,12 +26,15 @@ namespace CUE4Parse.FileProvider
         /// </summary>
         public FileProviderDictionary Files { get; }
 
+        public InternationalizationDictionary Internationalization { get; }
+
         public IDictionary<string, string> VirtualPaths { get; }
 
         /// <summary>
         /// the localized resources (strings) from the game
         /// </summary>
-        public IDictionary<string, IDictionary<string, string>> LocalizedResources { get; }
+        [Obsolete("use Internationalization instead")]
+        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> LocalizedResources => Internationalization;
 
         /// <summary>
         /// DefaultGame.ini file from the game
@@ -106,6 +109,10 @@ namespace CUE4Parse.FileProvider
         public bool TryGetGameFile(string path, [MaybeNullWhen(false)] out GameFile file);
 
         public int LoadLocalization(ELanguage language = ELanguage.English, CancellationToken cancellationToken = default);
+        public int LoadLocalization(string culture, CancellationToken cancellationToken = default);
+
+        public void ChangeCulture(string culture);
+        public bool TryChangeCulture(string culture);
 
         /// <summary>
         /// return the localized string based on params
@@ -295,6 +302,10 @@ namespace CUE4Parse.FileProvider
         /// <returns>The loaded object of type T</returns>
         public T LoadPackageObject<T>(string path) where T : UObject;
 
+        public UObject LoadPackageObject(string path, string objectName);
+
+        public T LoadPackageObject<T>(string path, string objectName) where T : UObject;
+
         /// <summary>
         /// Asynchronously loads an object from the Package at the passed path
         /// </summary>
@@ -312,6 +323,22 @@ namespace CUE4Parse.FileProvider
         public Task<UObject> LoadPackageObjectAsync(string path, string objectName);
 
         public Task<T> LoadPackageObjectAsync<T>(string path, string objectName) where T : UObject;
+
+        public UObject? SafeLoadPackageObject(string path);
+
+        public T? SafeLoadPackageObject<T>(string path) where T : UObject;
+
+        public UObject? SafeLoadPackageObject(string path, string objectName);
+
+        public T? SafeLoadPackageObject<T>(string path, string objectName) where T : UObject;
+
+        public Task<UObject?> SafeLoadPackageObjectAsync(string path);
+
+        public Task<T?> SafeLoadPackageObjectAsync<T>(string path) where T : UObject;
+
+        public Task<UObject?> SafeLoadPackageObjectAsync(string path, string objectName);
+
+        public Task<T?> SafeLoadPackageObjectAsync<T>(string path, string objectName) where T : UObject;
 
         /// <summary>
         /// Attempts to load an object from the Package at the passed path

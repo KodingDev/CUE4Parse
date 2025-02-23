@@ -14,7 +14,6 @@ using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Internationalization;
 using CUE4Parse.UE4.IO.Objects;
-using CUE4Parse.UE4.Localization;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Pak.Objects;
 using CUE4Parse.UE4.Plugins;
@@ -46,8 +45,8 @@ namespace CUE4Parse.FileProvider
         public StringComparer PathComparer { get; }
 
         public FileProviderDictionary Files { get; }
+        public InternationalizationDictionary Internationalization { get; }
         public IDictionary<string, string> VirtualPaths { get; }
-        public IDictionary<string, IDictionary<string, string>> LocalizedResources { get; }
         public CustomConfigIni DefaultGame { get; }
         public CustomConfigIni DefaultEngine { get; }
 
@@ -65,8 +64,8 @@ namespace CUE4Parse.FileProvider
             PathComparer = pathComparer ?? StringComparer.Ordinal;
 
             Files = new FileProviderDictionary();
+            Internationalization = new InternationalizationDictionary(PathComparer);
             VirtualPaths = new Dictionary<string, string>(PathComparer);
-            LocalizedResources = new Dictionary<string, IDictionary<string, string>>(PathComparer);
             DefaultGame = new CustomConfigIni(nameof(DefaultGame));
             DefaultEngine = new CustomConfigIni(nameof(DefaultEngine));
         }
@@ -177,42 +176,33 @@ namespace CUE4Parse.FileProvider
         }
 
         public int LoadLocalization(ELanguage language = ELanguage.English, CancellationToken cancellationToken = default)
-        {
-            var regex = new Regex($"^{ProjectName}/.+/{GetLanguageCode(language)}/.+.locres$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            LocalizedResources.Clear();
+            => LoadLocalization(GetLanguageCode(language), cancellationToken);
 
-            var i = 0;
-            foreach (var file in Files.Where(x => regex.IsMatch(x.Key)))
+        [Obsolete("use Provider.ChangeCulture instead")]
+        public int LoadLocalization(string culture, CancellationToken cancellationToken = default)
+        {
+            ChangeCulture(culture);
+            return Internationalization.Count;
+        }
+
+        public void ChangeCulture(string culture) => Internationalization.ChangeCulture(culture, Files);
+
+        public bool TryChangeCulture(string culture)
+        {
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (!file.Value.TryCreateReader(out var archive)) continue;
-
-                var locres = new FTextLocalizationResource(archive);
-                foreach (var entries in locres.Entries)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    if (!LocalizedResources.ContainsKey(entries.Key.Str))
-                        LocalizedResources[entries.Key.Str] = new Dictionary<string, string>();
-
-                    foreach (var keyValue in entries.Value)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        LocalizedResources[entries.Key.Str][keyValue.Key.Str] = keyValue.Value.LocalizedString;
-                        i++;
-                    }
-                }
+                ChangeCulture(culture);
+                return true;
             }
-            return i;
+            catch
+            {
+                return false;
+            }
         }
 
+        [Obsolete("use Internationalization.SafeGet instead")]
         public string GetLocalizedString(string @namespace, string key, string? defaultValue)
-        {
-            if (LocalizedResources.TryGetValue(@namespace, out var keyValue) &&
-                keyValue.TryGetValue(key, out var localizedResource))
-                return localizedResource;
-
-            return defaultValue ?? string.Empty;
-        }
+            => Internationalization.SafeGet(@namespace, key, defaultValue);
 
         /// <summary>
         /// TODO: get rid of this
@@ -419,6 +409,8 @@ namespace CUE4Parse.FileProvider
                 if (defaultGame is VfsEntry { Vfs: IAesVfsReader aesVfsReader }) DefaultGame.EncryptionKeyGuid = aesVfsReader.EncryptionKeyGuid;
                 if (defaultGame.TryCreateReader(out var gameAr)) DefaultGame.Read(new StreamReader(gameAr));
                 gameAr?.Dispose();
+
+                Internationalization.InitFromIni(DefaultGame);
             }
             if (TryGetGameFile("/Game/Config/DefaultEngine.ini", out var defaultEngine))
             {
@@ -501,8 +493,7 @@ namespace CUE4Parse.FileProvider
         public Task<byte[]> SaveAssetAsync(string path) => SaveAssetAsync(this[path]);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<byte[]> SaveAssetAsync(GameFile file)
-            => await file.ReadAsync().ConfigureAwait(false);
+        public async Task<byte[]> SaveAssetAsync(GameFile file) => await file.ReadAsync().ConfigureAwait(false);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySaveAsset(string path, [MaybeNullWhen(false)] out byte[] data)
@@ -547,21 +538,36 @@ namespace CUE4Parse.FileProvider
         #region LoadPackage Methods
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IPackage LoadPackage(string path) => LoadPackage(this[path]);
+        public IPackage LoadPackage(GameFile file)
+        {
+            if (!file.IsUePackage) throw new ArgumentException("cannot load non-UE package", nameof(file));
+            Files.FindPayloads(file, out var uexp, out var ubulks, out var uptnls);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IPackage LoadPackage(GameFile file) => LoadPackageAsync(file).Result;
+            var uasset = file.CreateReader();
+            var lazyUbulk = ubulks.Count > 0 ? new Lazy<FArchive?>(() => ubulks[0].SafeCreateReader()) : null;
+            var lazyUptnl = uptnls.Count > 0 ? new Lazy<FArchive?>(() => uptnls[0].SafeCreateReader()) : null;
+
+            switch (file)
+            {
+                case FPakEntry or OsGameFile:
+                    return new Package(uasset, uexp?.CreateReader(), lazyUbulk, lazyUptnl, this, UseLazyPackageSerialization);
+                case FIoStoreEntry ioStoreEntry when this is IVfsFileProvider vfsFileProvider:
+                    return new IoPackage(uasset, ioStoreEntry.IoStoreReader.ContainerHeader, lazyUbulk, lazyUptnl, vfsFileProvider);
+                default:
+                    throw new NotImplementedException($"type {file.GetType()} is not supported");
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Task<IPackage> LoadPackageAsync(string path) => LoadPackageAsync(this[path]);
-
         public async Task<IPackage> LoadPackageAsync(GameFile file)
         {
             if (!file.IsUePackage) throw new ArgumentException("cannot load non-UE package", nameof(file));
             Files.FindPayloads(file, out var uexp, out var ubulks, out var uptnls);
 
             var uasset = await file.CreateReaderAsync().ConfigureAwait(false);
-            var lazyUbulk = ubulks.Count > 0 ? new Lazy<FArchive?>(() => ubulks[0].TryCreateReader(out var reader) ? reader : null) : null;
-            var lazyUptnl = uptnls.Count > 0 ? new Lazy<FArchive?>(() => uptnls[0].TryCreateReader(out var reader) ? reader : null) : null;
+            var lazyUbulk = ubulks.Count > 0 ? new Lazy<FArchive?>(() => ubulks[0].SafeCreateReader()) : null;
+            var lazyUptnl = uptnls.Count > 0 ? new Lazy<FArchive?>(() => uptnls[0].SafeCreateReader()) : null;
 
             switch (file)
             {
@@ -605,28 +611,28 @@ namespace CUE4Parse.FileProvider
         #region SavePackage Methods
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IReadOnlyDictionary<string, byte[]> SavePackage(string path) => SavePackage(this[path]);
+        public IReadOnlyDictionary<string, byte[]> SavePackage(GameFile file)
+        {
+            Files.FindPayloads(file, out var uexp, out var ubulks, out var uptnls, true);
+
+            var dict = new Dictionary<string, byte[]> { { file.Path, file.Read() } };
+            if (uexp != null) dict[uexp.Path] = uexp.Read();
+            foreach (var ubulk in ubulks) dict[ubulk.Path] = ubulk.Read();
+            foreach (var uptnl in uptnls) dict[uptnl.Path] = uptnl.Read();
+
+            return dict;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IReadOnlyDictionary<string, byte[]> SavePackage(GameFile file) => SavePackageAsync(file).Result;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<IReadOnlyDictionary<string, byte[]>> SavePackageAsync(string path)
-            => await SavePackageAsync(this[path]).ConfigureAwait(false);
-
+        public async Task<IReadOnlyDictionary<string, byte[]>> SavePackageAsync(string path) => await SavePackageAsync(this[path]).ConfigureAwait(false);
         public async Task<IReadOnlyDictionary<string, byte[]>> SavePackageAsync(GameFile file)
         {
             Files.FindPayloads(file, out var uexp, out var ubulks, out var uptnls, true);
 
             var dict = new Dictionary<string, byte[]> { { file.Path, await file.ReadAsync().ConfigureAwait(false) } };
-            if (uexp != null && uexp.TryRead(out var uexpData)) dict[uexp.Path] = uexpData;
-
-            foreach (var ubulk in ubulks)
-                if (ubulk.TryRead(out var ubulkData))
-                    dict[ubulk.Path] = ubulkData;
-
-            foreach (var uptnl in uptnls)
-                if (uptnl.TryRead(out var uptnlData))
-                    dict[uptnl.Path] = uptnlData;
+            if (uexp != null) dict[uexp.Path] = await uexp.ReadAsync().ConfigureAwait(false);
+            foreach (var ubulk in ubulks) dict[ubulk.Path] = await ubulk.ReadAsync().ConfigureAwait(false);
+            foreach (var uptnl in uptnls) dict[uptnl.Path] = await uptnl.ReadAsync().ConfigureAwait(false);
 
             return dict;
         }
@@ -659,21 +665,9 @@ namespace CUE4Parse.FileProvider
         #endregion
 
         #region LoadObject Methods
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UObject LoadPackageObject(string path) => LoadPackageObject<UObject>(path);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T LoadPackageObject<T>(string path) where T : UObject => LoadPackageObjectAsync<T>(path).Result;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<UObject> LoadPackageObjectAsync(string path)
-            => await LoadPackageObjectAsync<UObject>(path).ConfigureAwait(false);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<T> LoadPackageObjectAsync<T>(string path) where T : UObject
+        private ValueTuple<string, string> GetPathName(string path)
         {
             var index = path.LastIndexOf('.');
-
             string objectName;
             if (index == -1)
             {
@@ -684,44 +678,116 @@ namespace CUE4Parse.FileProvider
                 objectName = path[(index + 1)..];
                 path = path[..index];
             }
-
-            return await LoadPackageObjectAsync<T>(path, objectName).ConfigureAwait(false);
+            return (path, objectName);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<UObject> LoadPackageObjectAsync(string path, string objectName)
-            => await LoadPackageObjectAsync<UObject>(path, objectName).ConfigureAwait(false);
+        public UObject LoadPackageObject(string path) => LoadPackageObject<UObject>(path);
 
-        public async Task<T> LoadPackageObjectAsync<T>(string path, string objectName) where T : UObject
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T LoadPackageObject<T>(string path) where T : UObject => LoadPackageObject<T>(GetPathName(path));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UObject LoadPackageObject(string path, string objectName) => LoadPackageObject<UObject>(path, objectName);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T LoadPackageObject<T>(string path, string objectName) where T : UObject => LoadPackageObject<T>((path, objectName));
+
+        private T LoadPackageObject<T>(ValueTuple<string, string> pathName) where T : UObject
         {
-            ArgumentException.ThrowIfNullOrEmpty(nameof(path), path);
-            ArgumentException.ThrowIfNullOrEmpty(nameof(objectName), objectName);
+            ArgumentException.ThrowIfNullOrEmpty("path", pathName.Item1);
+            ArgumentException.ThrowIfNullOrEmpty("objectName", pathName.Item2);
 
-            var package = await LoadPackageAsync(path).ConfigureAwait(false);
-            return package.GetExport<T>(objectName);
+            var package = LoadPackage(pathName.Item1);
+            return package.GetExport<T>(pathName.Item2);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryLoadPackageObject(string path, [MaybeNullWhen(false)] out UObject export)
-            => TryLoadPackageObject<UObject>(path, out export);
+        public async Task<UObject> LoadPackageObjectAsync(string path) => await LoadPackageObjectAsync<UObject>(path).ConfigureAwait(false);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<T> LoadPackageObjectAsync<T>(string path) where T : UObject => await LoadPackageObjectAsync<T>(GetPathName(path)).ConfigureAwait(false);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<UObject> LoadPackageObjectAsync(string path, string objectName) => await LoadPackageObjectAsync<UObject>(path, objectName).ConfigureAwait(false);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<T> LoadPackageObjectAsync<T>(string path, string objectName) where T : UObject => await LoadPackageObjectAsync<T>((path, objectName)).ConfigureAwait(false);
+
+        private async Task<T> LoadPackageObjectAsync<T>(ValueTuple<string, string> pathName) where T : UObject
+        {
+            ArgumentException.ThrowIfNullOrEmpty("path", pathName.Item1);
+            ArgumentException.ThrowIfNullOrEmpty("objectName", pathName.Item2);
+
+            var package = await LoadPackageAsync(pathName.Item1).ConfigureAwait(false);
+            return package.GetExport<T>(pathName.Item2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UObject? SafeLoadPackageObject(string path) => SafeLoadPackageObject<UObject>(path);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T? SafeLoadPackageObject<T>(string path) where T : UObject => SafeLoadPackageObject<T>(GetPathName(path));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UObject? SafeLoadPackageObject(string path, string objectName) => SafeLoadPackageObject<UObject>(path, objectName);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T? SafeLoadPackageObject<T>(string path, string objectName) where T : UObject => SafeLoadPackageObject<T>((path, objectName));
+
+        private T? SafeLoadPackageObject<T>(ValueTuple<string, string> pathName) where T : UObject
+        {
+            try
+            {
+                return LoadPackageObject<T>(pathName);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<UObject?> SafeLoadPackageObjectAsync(string path) => await SafeLoadPackageObjectAsync<UObject>(path).ConfigureAwait(false);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<T?> SafeLoadPackageObjectAsync<T>(string path) where T : UObject => await SafeLoadPackageObjectAsync<T>(GetPathName(path)).ConfigureAwait(false);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<UObject?> SafeLoadPackageObjectAsync(string path, string objectName) => await SafeLoadPackageObjectAsync<UObject>(path, objectName).ConfigureAwait(false);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public async Task<T?> SafeLoadPackageObjectAsync<T>(string path, string objectName) where T : UObject => await SafeLoadPackageObjectAsync<T>((path, objectName)).ConfigureAwait(false);
+
+        private async Task<T?> SafeLoadPackageObjectAsync<T>(ValueTuple<string, string> pathName) where T : UObject
+        {
+            try
+            {
+                return await LoadPackageObjectAsync<T>(pathName).ConfigureAwait(false);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryLoadPackageObject(string path, [MaybeNullWhen(false)] out UObject export) => TryLoadPackageObject<UObject>(path, out export);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryLoadPackageObject<T>(string path, [MaybeNullWhen(false)] out T export) where T : UObject
         {
-            try
-            {
-                export = LoadPackageObject<T>(path);
-            }
-            catch
-            {
-                export = null;
-            }
+            export = SafeLoadPackageObject<T>(path);
             return export != null;
         }
 
         [Obsolete("use LoadPackage().GetExports() instead")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IEnumerable<UObject> LoadPackageObjects(string path) => LoadPackageObjectsAsync(path).Result;
+        public IEnumerable<UObject> LoadPackageObjects(string path)
+        {
+            var package = LoadPackage(path);
+            return package.GetExports();
+        }
 
         [Obsolete("use LoadPackageAsync().GetExports() instead")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -736,7 +802,7 @@ namespace CUE4Parse.FileProvider
         {
             Files.Clear();
             VirtualPaths.Clear();
-            LocalizedResources.Clear();
+            Internationalization.Clear();
         }
     }
 }
