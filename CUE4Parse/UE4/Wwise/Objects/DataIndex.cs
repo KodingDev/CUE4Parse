@@ -7,6 +7,6 @@ namespace CUE4Parse.UE4.Wwise.Objects
     {
         public readonly uint Id;
         public readonly uint Offset;
-        public readonly int Length;
+        public readonly uint Length;
     }
 }

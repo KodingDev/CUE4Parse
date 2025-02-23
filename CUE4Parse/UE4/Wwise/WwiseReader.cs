@@ -63,6 +63,10 @@ public class WwiseReader
                     break;
                 case ESectionIdentifier.BKHD:
                         Header = Ar.Read<BankHeader>();
+                        unsafe
+                        {
+                            Ar.Position += sectionLength - sizeof(BankHeader);
+                        }
                     break;
                 case ESectionIdentifier.INIT:
                     Initialization = Ar.ReadArray(() =>
@@ -72,7 +76,10 @@ public class WwiseReader
                     });
                     break;
                 case ESectionIdentifier.DIDX:
-                    WemIndexes = Ar.ReadArray(sectionLength / 12, Ar.Read<DataIndex>);
+                    unsafe
+                    {
+                        WemIndexes = Ar.ReadArray(sectionLength / sizeof(DataIndex), Ar.Read<DataIndex>);
+                    }
                     break;
                 case ESectionIdentifier.DATA:
                     if (WemIndexes == null) break;
@@ -80,7 +87,7 @@ public class WwiseReader
                     for (var i = 0; i < WemSounds.Length; i++)
                     {
                         Ar.Position = position + WemIndexes[i].Offset;
-                        WemSounds[i] = Ar.ReadBytes(WemIndexes[i].Length);
+                        WemSounds[i] = Ar.ReadBytes((int)WemIndexes[i].Length);
                         WwiseEncodedMedias[WemIndexes[i].Id.ToString()] = WemSounds[i];
                     }
                     break;
