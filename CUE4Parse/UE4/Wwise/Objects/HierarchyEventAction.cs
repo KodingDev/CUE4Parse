@@ -12,7 +12,7 @@ namespace CUE4Parse.UE4.Wwise.Objects
         public readonly EEventActionType EventActionType;
         public readonly uint ReferencedId;
         public readonly short ParameterCount;
-        public readonly Dictionary<EEventActionParameterType, int> Parameters;
+        // public readonly Dictionary<EEventActionParameterType, int> Parameters;
 
         public HierarchyEventAction(FArchive Ar) : base(Ar)
         {
@@ -55,14 +55,14 @@ namespace CUE4Parse.UE4.Wwise.Objects
             writer.WritePropertyName("ParameterCount");
             writer.WriteValue(ParameterCount);
 
-            writer.WritePropertyName("Parameters");
-            writer.WriteStartObject();
-            foreach (var (key, value) in Parameters)
-            {
-                writer.WritePropertyName(key.ToString());
-                writer.WriteValue(value);
-            }
-            writer.WriteEndObject();
+            // writer.WritePropertyName("Parameters");
+            // writer.WriteStartObject();
+            // foreach (var (key, value) in Parameters)
+            // {
+            //     writer.WritePropertyName(key.ToString());
+            //     writer.WriteValue(value);
+            // }
+            // writer.WriteEndObject();
 
             writer.WriteEndObject();
         }
