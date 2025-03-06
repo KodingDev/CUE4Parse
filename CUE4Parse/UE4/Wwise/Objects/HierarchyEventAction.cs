@@ -24,14 +24,14 @@ namespace CUE4Parse.UE4.Wwise.Objects
             Array.Reverse(reversedCount);
             ParameterCount = BitConverter.ToInt16(reversedCount, 0);
 
-            var parameterTypes = Ar.ReadArray(ParameterCount, () => Ar.Read<EEventActionParameterType>());
-            var parameterValues = Ar.ReadArray(ParameterCount, () => Ar.Read<int>());
-
-            Parameters = new Dictionary<EEventActionParameterType, int>();
-            for (var i = 0; i < parameterTypes.Length; i++)
-            {
-                Parameters.Add(parameterTypes[i], parameterValues[i]);
-            }
+            // var parameterTypes = Ar.ReadArray(ParameterCount, () => Ar.Read<EEventActionParameterType>());
+            // var parameterValues = Ar.ReadArray(ParameterCount, () => Ar.Read<int>());
+            //
+            // Parameters = new Dictionary<EEventActionParameterType, int>();
+            // for (var i = 0; i < parameterTypes.Length; i++)
+            // {
+            //     Parameters.Add(parameterTypes[i], parameterValues[i]);
+            // }
 
             // TODO: https://web.archive.org/web/20230818023606/http://wiki.xentax.com/index.php/Wwise_SoundBank_(*.bnk)#type_.233:_Event_Action
         }
