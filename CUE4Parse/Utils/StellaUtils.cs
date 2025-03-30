@@ -27,5 +27,5 @@ public class StellaUtils
         public override string ToString() => _version;
     }
 
-    public static MarvelRivalsVersion Version => new("2.0.0");
+    public static MarvelRivalsVersion Version { get; set; } = new ("2.0.0");
 }
