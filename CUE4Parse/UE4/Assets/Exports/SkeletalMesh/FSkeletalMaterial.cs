@@ -48,7 +48,7 @@ namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh
             switch (Ar.Game)
             {
                 case EGame.GAME_FragPunk or EGame.GAME_MarvelRivals:
-                    if (StellaUtils.Version <= new StellaUtils.MarvelRivalsVersion("1.1.1573788")) break;
+                    if (StellaUtils.Version < new StellaUtils.MarvelRivalsVersion("1.1.1573788")) break;
                     Ar.Position += 4;
                     break;
                 case EGame.GAME_Strinova:
