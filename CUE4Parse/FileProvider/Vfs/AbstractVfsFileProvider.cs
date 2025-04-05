@@ -206,6 +206,13 @@ namespace CUE4Parse.FileProvider.Vfs
             _unloadedVfs[reader] = null;
             reader.IsConcurrent = isConcurrent;
             reader.CustomEncryption = CustomEncryption;
+
+            // Disable custom encryption for IoStore in Marvel Rivals
+            if (reader.Game == EGame.GAME_MarvelRivals && reader is IoStoreReader)
+            {
+                reader.CustomEncryption = null;
+            }
+
             VfsRegistered?.Invoke(reader, _unloadedVfs.Count);
         }
 
