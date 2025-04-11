@@ -270,7 +270,7 @@ public static class TextureDecoder
         {
             bytes = ArrayPool<byte>.Shared.Rent(mip.BulkData.Data.Length);
             Buffer.BlockCopy(mip.BulkData.Data, 0, bytes, 0, mip.BulkData.Data.Length);
-            
+
             // Handle deswizzling if necessary.
             if (isXBPS) bytes = PlatformDeswizzlers.DeswizzleXBPS(bytes, mip, formatInfo);
             else if (isNX) bytes = PlatformDeswizzlers.GetDeswizzledData(bytes, mip, formatInfo);
@@ -388,8 +388,12 @@ public static class TextureDecoder
                         Bc5.Decompress(bytes, sizeX, sizeY, out tempData);
                         Buffer.BlockCopy(tempData, 0, data, 0, Math.Min(tempData.Length, expectedSize));
                         colorType = SKColorType.Bgra8888;
+
+                    for (var i = 0; i < sizeX * sizeY; i++)
+                    {
+                        data[i * 4] = BCDecoder.GetZNormal(data[i * 4 + 2], data[i * 4 + 1]);
                     }
-                    else
+                }else
                     {
                         tempData = BCDecoder.BC5(bytes, sizeX, sizeY, sizeZ);
                         Buffer.BlockCopy(tempData, 0, data, 0, Math.Min(tempData.Length, expectedSize));
