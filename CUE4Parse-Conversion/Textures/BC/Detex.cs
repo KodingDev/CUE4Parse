@@ -73,12 +73,12 @@ namespace CUE4Parse_Conversion.Textures.BC
                 if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
                 {
                     dllStream = "CUE4Parse_Conversion.Resources.Detex.arm64.so";
-                    dllFile = Constants.DETEX_DLL_NAME + ".so";
+                    dllFile = "libdetex.so";
                 }
                 else
                 {
                     dllStream = "CUE4Parse_Conversion.Resources.Detex.x64.so";
-                    dllFile = Constants.DETEX_DLL_NAME + ".so";
+                    dllFile = "libdetex.so";
                 }
             }
             
