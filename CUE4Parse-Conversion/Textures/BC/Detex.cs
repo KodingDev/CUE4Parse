@@ -70,8 +70,16 @@ namespace CUE4Parse_Conversion.Textures.BC
             }
             else
             {
-                dllStream = "CUE4Parse_Conversion.Resources.Detex.so";
-                dllFile = Constants.DETEX_DLL_NAME + ".so";
+                if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                {
+                    dllStream = "CUE4Parse_Conversion.Resources.Detex.arm64.so";
+                    dllFile = Constants.DETEX_DLL_NAME + ".arm64.so";
+                }
+                else
+                {
+                    dllStream = "CUE4Parse_Conversion.Resources.Detex.x64.so";
+                    dllFile = Constants.DETEX_DLL_NAME + ".x64.so";
+                }
             }
             
             dllFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), dllFile);

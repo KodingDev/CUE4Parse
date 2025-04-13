@@ -39,8 +39,16 @@ public static class PlatformDeswizzlers
         }
         else
         {
-            dllStream = "CUE4Parse_Conversion.Resources.tegra_swizzle_x64.so";
-            dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME + ".so";
+            if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+            {
+                dllStream = "CUE4Parse_Conversion.Resources.tegra_swizzle.arm64.so";
+                dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME + ".so";
+            }
+            else
+            {
+                dllStream = "CUE4Parse_Conversion.Resources.tegra_swizzle.x64.so";
+                dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME + ".so";
+            }
         }
         
         dllFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), dllFile);
