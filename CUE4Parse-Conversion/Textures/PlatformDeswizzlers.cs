@@ -42,12 +42,12 @@ public static class PlatformDeswizzlers
             if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
             {
                 dllStream = "CUE4Parse_Conversion.Resources.tegra_swizzle.arm64.so";
-                dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME + ".so";
+                dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME;
             }
             else
             {
                 dllStream = "CUE4Parse_Conversion.Resources.tegra_swizzle.x64.so";
-                dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME + ".so";
+                dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME;
             }
         }
         
