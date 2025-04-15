@@ -80,7 +80,7 @@ public static class PlatformDeswizzlers
 
         if (!fileOk)
         {
-            File.WriteAllBytes("tegra_swizzle_x64.dll", ba);
+            File.WriteAllBytes(dllFile, ba);
         }
     }
 
