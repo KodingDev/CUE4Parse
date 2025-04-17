@@ -162,7 +162,7 @@ public static class TextureDecoder
             {
                 DecodeTexture(mip, sizeX, sizeY, sizeZ, texture.Format, texture.IsNormalMap, platform, out decodedData,
                     out var colorType);
-                return InstallPixels(GetImageDataRange(decodedData, mip, sizeX, sizeY, zLayer),
+                return InstallPixels(GetImageDataRange(decodedData, sizeX, sizeY, zLayer),
                     new SKImageInfo(sizeX, sizeY, colorType, SKAlphaType.Unpremul));
             }
             finally
@@ -210,7 +210,7 @@ public static class TextureDecoder
         {
             sizeX = sizeX.Align(4);
             sizeY = sizeY.Align(4);
-            sizeZ = sizeZ.Align(4);
+            // sizeZ = sizeZ.Align(4);
         }
 
         byte[]? decodedData = null;
@@ -219,14 +219,15 @@ public static class TextureDecoder
             DecodeTexture(mip, sizeX, sizeY, sizeZ, texture.Format, texture.IsNormalMap, platform, out decodedData,
                 out var colorType);
 
-            var bitmaps = new List<SKBitmap>();
-            var offset = sizeX * sizeY * 4;
-            for (var i = 0; i < sizeZ; i++)
-            {
-                if (offset * (i + 1) > decodedData.Length) break;
-                bitmaps.Add(InstallPixels(GetImageDataRange(decodedData, mip, sizeX, sizeY, i),
-                    new SKImageInfo(sizeX, sizeY, colorType, SKAlphaType.Unpremul)));
-            }
+        var bitmaps = new List<SKBitmap>();
+        var offset = sizeX * sizeY * 4;
+        for (var i = 0; i < sizeZ; i++)
+        {
+            bitmaps.Add(InstallPixels(GetImageDataRange(decodedData, sizeX, sizeY, i),
+                new SKImageInfo(sizeX, sizeY, colorType, SKAlphaType.Unpremul)));
+
+            if (offset * (i + 1) > decodedData.Length) break;
+        }
 
             return bitmaps.ToArray();
         }
@@ -239,7 +240,7 @@ public static class TextureDecoder
         }
     }
 
-    private static ReadOnlySpan<byte> GetImageDataRange(byte[] data, FTexture2DMipMap mip, int sizeX, int sizeY, int zLayer)
+    private static ReadOnlySpan<byte> GetImageDataRange(byte[] data, int sizeX, int sizeY, int zLayer)
     {
         var offset = sizeX * sizeY * 4;
         var startIndex = offset * zLayer;
@@ -388,7 +389,6 @@ public static class TextureDecoder
                         Bc5.Decompress(bytes, sizeX, sizeY, out tempData);
                         Buffer.BlockCopy(tempData, 0, data, 0, Math.Min(tempData.Length, expectedSize));
                         colorType = SKColorType.Bgra8888;
-
                     for (var i = 0; i < sizeX * sizeY; i++)
                     {
                         data[i * 4] = BCDecoder.GetZNormal(data[i * 4 + 2], data[i * 4 + 1]);
@@ -433,7 +433,7 @@ public static class TextureDecoder
                     }
                     else
                     {
-                        tempData = Detex.DecodeDetexLinear(bytes, sizeX, sizeY, false,
+                        tempData = Detex.DecodeDetexLinear(bytes, sizeX, sizeY * sizeZ, false,
                             DetexTextureFormat.DETEX_TEXTURE_FORMAT_BPTC,
                             DetexPixelFormat.DETEX_PIXEL_FORMAT_RGBA8);
                         Buffer.BlockCopy(tempData, 0, data, 0, Math.Min(tempData.Length, expectedSize));
