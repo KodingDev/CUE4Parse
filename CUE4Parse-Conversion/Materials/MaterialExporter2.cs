@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CUE4Parse_Conversion.Textures;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.Utils;
 using Newtonsoft.Json;
-using SkiaSharp;
+using static CUE4Parse_Conversion.Textures.TextureEncoder;
+
 
 namespace CUE4Parse_Conversion.Materials
 {
@@ -63,35 +63,10 @@ namespace CUE4Parse_Conversion.Materials
 
                 lock (_texture)
                 {
-                    var ext = Options.TextureFormat switch
-                    {
-                        ETextureFormat.Png => "png",
-                        ETextureFormat.Tga => "tga",
-                        ETextureFormat.Dds => "dds",
-                        _ => "png"
-                    };
-
+                    var imageData = bitmap.Encode(Options.TextureFormat, out var ext);
                     var texturePath = FixAndCreatePath(baseDirectory,(t.Owner?.Provider?.FixPath(t.Owner.Name) ?? t.Name).SubstringBeforeLast('.'), ext);
-
-                    try
-                    {
-                        using var fs = new FileStream(texturePath, FileMode.Create, FileAccess.Write);
-                        using var data = bitmap.Encode(Options.TextureFormat, 100);
-                        using var stream = data.AsStream();
-                        stream.CopyTo(fs);
-                    }
-                    catch (IOException e)
-                    {
-                        var errorCode = Marshal.GetHRForException(e) & ((1 << 16) - 1);
-                        if (errorCode == 32 || errorCode == 33)
-                        {
-                            Console.WriteLine($"Texture is already in use, ignoring write: {texturePath}");
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                    }
+                    using var fs = new FileStream(texturePath, FileMode.Create, FileAccess.Write);
+                    fs.Write(imageData, 0, imageData.Length);
                 }
             });
 
