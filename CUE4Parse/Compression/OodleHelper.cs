@@ -55,8 +55,20 @@ public static class OodleHelper
     public static void Initialize(string path)
     {
         Instance?.Dispose();
+
+        if (CUE4ParseNatives.IsFeatureAvailable("Oodle"))
+        {
+            Instance = new Oodle(NativeLibrary.Load(CUE4ParseNatives.LibraryName));
+            return;
+        }
+
         if (File.Exists(path))
+        {
             Instance = new Oodle(path);
+            return;
+        }
+
+        throw new FileNotFoundException("Oodle DLL not found", path);
     }
 
     public static void Initialize(Oodle instance)
