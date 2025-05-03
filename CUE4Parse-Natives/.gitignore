@@ -1,5 +1,5 @@
 ﻿builddir
 build
 *.log
-Oodle/external/oodle2/*
+#Oodle/external/oodle2/* # haha licensing lolz
 !.gitkeep
