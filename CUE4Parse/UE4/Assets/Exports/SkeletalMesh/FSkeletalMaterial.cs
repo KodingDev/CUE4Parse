@@ -53,7 +53,7 @@ public class FSkeletalMaterial
         switch (Ar.Game)
         {
             case EGame.GAME_MarvelRivals:
-                if (StellaUtils.Version < new StellaUtils.MarvelRivalsVersion("1.1.1573788")) break;
+                if (Ar.Versions.ArbitraryVersion != null && Ar.Versions.ArbitraryVersion < new ArbitraryVersion("1.1.1573788")) break;
                 _ = new FGameplayTagContainer(Ar);
                 break;
             case EGame.GAME_FragPunk or EGame.GAME_DaysGone:

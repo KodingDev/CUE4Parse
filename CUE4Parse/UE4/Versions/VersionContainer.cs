@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Core.Serialization;
+using CUE4Parse.Utils;
 using static CUE4Parse.UE4.Versions.EGame;
 
 namespace CUE4Parse.UE4.Versions
@@ -49,13 +50,15 @@ namespace CUE4Parse.UE4.Versions
         public bool bExplicitVer { get; private set; }
 
         public FCustomVersionContainer? CustomVersions;
+        public ArbitraryVersion? ArbitraryVersion;
+
         public readonly Dictionary<string, bool> Options = new();
         public readonly Dictionary<string, KeyValuePair<string, string>> MapStructTypes = new();
 
         private readonly IDictionary<string, bool>? _optionOverrides;
         private readonly IDictionary<string, KeyValuePair<string, string>>? _mapStructTypesOverrides;
 
-        public VersionContainer(EGame game = GAME_UE4_LATEST, ETexturePlatform platform = ETexturePlatform.DesktopMobile, FPackageFileVersion ver = default, FCustomVersionContainer? customVersions = null, IDictionary<string, bool>? optionOverrides = null, IDictionary<string, KeyValuePair<string, string>>? mapStructTypesOverrides = null)
+        public VersionContainer(EGame game = GAME_UE4_LATEST, ETexturePlatform platform = ETexturePlatform.DesktopMobile, FPackageFileVersion ver = default, FCustomVersionContainer? customVersions = null, IDictionary<string, bool>? optionOverrides = null, IDictionary<string, KeyValuePair<string, string>>? mapStructTypesOverrides = null, ArbitraryVersion? arbitraryVersion = null)
         {
             _optionOverrides = optionOverrides;
             _mapStructTypesOverrides = mapStructTypesOverrides;
@@ -64,6 +67,7 @@ namespace CUE4Parse.UE4.Versions
             Ver = ver;
             Platform = platform;
             CustomVersions = customVersions;
+            ArbitraryVersion = arbitraryVersion;
         }
 
         private void InitOptions()
