@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
@@ -14,12 +13,7 @@ public class FStringTable
 
     public FStringTable(FAssetArchive Ar)
     {
-        // Copy the buffer
-        // var bytes = Ar.ReadBytes((int) (Ar.Length - Ar.Position));
-        // Console.WriteLine(Hex.ToHexString(bytes));
-
         TableNamespace = Ar.ReadFString();
-
         KeysToEntries = Ar.ReadMap(Ar.ReadFString, () =>
         {
             var str = Ar.ReadFString();
