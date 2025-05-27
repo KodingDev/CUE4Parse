@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Serilog;
 
@@ -10,8 +11,7 @@ namespace CUE4Parse_Conversion.Textures.BC;
 
 public static class DetexHelper
 {
-    private const string MANIFEST_URL = "CUE4Parse_Conversion.Resources.Detex.dll";
-    public const string DLL_NAME = "Detex.dll";
+    public const string DLL_NAME = "Detex";
 
     private static Detex? Instance { get; set; }
 
@@ -20,6 +20,7 @@ public static class DetexHelper
     /// </summary>
     public static void Initialize(string path)
     {
+        path = GetDllPath(path);
         Instance?.Dispose();
         if (File.Exists(path))
             Instance = new Detex(path);
@@ -39,7 +40,8 @@ public static class DetexHelper
     /// </summary>
     public static bool LoadDll(string? path = null)
     {
-        if (File.Exists(path ?? DLL_NAME))
+        path = GetDllPath(path);
+        if (File.Exists(path))
             return true;
         return LoadDllAsync(path).GetAwaiter().GetResult();
     }
@@ -61,6 +63,13 @@ public static class DetexHelper
         return dst;
     }
 
+    public static string GetDllPath(string? path)
+    {
+        path ??= DLL_NAME;
+        if (OperatingSystem.IsWindows()) return path + ".dll";
+        return path + ".so";
+    }
+
     /// <summary>
     /// Asynchronously loads the Detex DLL from resources.
     /// </summary>
@@ -68,7 +77,7 @@ public static class DetexHelper
     {
         try
         {
-            var dllPath = path ?? DLL_NAME;
+            var dllPath = GetDllPath(path ?? DLL_NAME);
 
             if (File.Exists(dllPath))
             {
@@ -76,7 +85,24 @@ public static class DetexHelper
                 return true;
             }
 
-            await using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(MANIFEST_URL);
+            string dllStream;
+            if (OperatingSystem.IsWindows())
+            {
+                dllStream = "CUE4Parse_Conversion.Resources.Detex.dll";
+            }
+            else
+            {
+                if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                {
+                    dllStream = "CUE4Parse_Conversion.Resources.Detex.arm64.so";
+                }
+                else
+                {
+                    dllStream = "CUE4Parse_Conversion.Resources.Detex.x64.so";
+                }
+            }
+
+            await using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(dllStream);
             if (stream == null)
             {
                 throw new MissingManifestResourceException("Couldn't find Detex.dll in Embedded Resources.");
