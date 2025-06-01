@@ -18,4 +18,19 @@ public static class CUE4ParseNatives
             return false;
         }
     }
+
+    public static string GetNativeLibraryName()
+    {
+        switch (Environment.OSVersion.Platform)
+        {
+            case PlatformID.Win32NT:
+                return $"{LibraryName}.dll";
+            case PlatformID.Unix:
+                return RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"{LibraryName}.dylib" : $"{LibraryName}.so";
+            case PlatformID.MacOSX:
+                return $"{LibraryName}.dylib";
+            default:
+                throw new PlatformNotSupportedException($"Platform {Environment.OSVersion.Platform} is not supported.");
+        }
+    }
 }
