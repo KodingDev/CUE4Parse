@@ -13,7 +13,7 @@ public static class DetexHelper
 {
     public const string DLL_NAME = "Detex";
 
-    private static Detex? Instance { get; set; }
+    public static Detex? Instance { get; set; }
 
     /// <summary>
     /// Initializes the Detex library with a given path.
