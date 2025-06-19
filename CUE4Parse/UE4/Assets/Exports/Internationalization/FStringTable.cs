@@ -15,6 +15,7 @@ public class FStringTable
     public FStringTable(FAssetArchive Ar)
     {
         TableNamespace = Ar.ReadFString();
+
         KeysToEntries = Ar.ReadMap(Ar.ReadFString, () =>
         {
             var str = Ar.ReadFString();
