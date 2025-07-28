@@ -4,6 +4,13 @@ project(CUE4Parse-Natives CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Add compiler flags for Clang
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(
+        -Wno-missing-template-arg-list-after-template-kw
+        -Wno-error=missing-template-arg-list-after-template-kw
+    )
+endif()
 
 if (EXISTS "${PROJECT_SOURCE_DIR}/ACL/external/acl/includes")
     set(WITH_ACL 1)
