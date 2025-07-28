@@ -29,6 +29,8 @@ public class WwiseProviderConfiguration(long maxTotalWwiseSize = 2L * 1024 * 102
     // Important note: If game splits audio event hierarchies across multiple soundbanks and either of these limits is reached, given game requires custom loading implementation!
     public long MaxTotalWwiseSize { get; } = maxTotalWwiseSize;
     public int MaxBankFiles { get; } = maxBankFiles;
+    // NOTES:
+    // - REMATCH requires increase MaxBankFiles. Total Wwise size is fine.
 }
 
 public class WwiseProvider
@@ -44,6 +46,10 @@ public class WwiseProvider
     private readonly List<uint> _wwiseLoadedSoundBanks = [];
     private bool _completedWwiseFullBnkInit = false;
 
+    public WwiseProvider(AbstractVfsFileProvider provider, int maxBankFiles)
+        : this(provider, new WwiseProviderConfiguration(maxBankFiles: maxBankFiles))
+    {
+    }
     public WwiseProvider(AbstractVfsFileProvider provider, WwiseProviderConfiguration? configuration = null)
     {
         _provider = provider;
@@ -96,9 +102,9 @@ public class WwiseProvider
                 return results;
 
             string? soundBankId = null;
-            if (requiredBankProp?.Tag is ObjectProperty objProp && objProp.Value != null)
+            if (requiredBankProp?.Tag is ObjectProperty { Value: not null } objProp)
             {
-                if (objProp.Value.TryLoad(out var audioBank) && audioBank != null)
+                if (objProp.Value.TryLoad(out var audioBank))
                 {
                     soundBankId = audioBank?.Properties?.FirstOrDefault(p => p.Name.Text == "ShortID")?.Tag?.GenericValue?.ToString();
                 }
@@ -359,8 +365,23 @@ public class WwiseProvider
         long totalLoadedSize = 0;
         int totalLoadedBanks = 0;
 
-        IEnumerable<GameFile> soundBankFiles = _provider.Files.Values
-            .Where(file => _validSoundBankExtensions.Contains(file.Extension));
+        var soundBankFiles = _provider.Files.Values
+            .Where(file => _validSoundBankExtensions.Contains(file.Extension))
+            .ToList();
+
+        if (soundBankFiles.Count == 0)
+        {
+            var initAsset = _provider.Files.Values.Any(file => file.Extension.Equals("uasset", StringComparison.OrdinalIgnoreCase) &&
+                                                               (file.Path.Contains("Init", StringComparison.OrdinalIgnoreCase) ||
+                                                                file.Path.Contains("InitBank", StringComparison.OrdinalIgnoreCase)));
+
+            if (initAsset)
+            {
+                // TEMP: Init bnk was found, but caching isn't supported yet, prevent exception from throwing
+                _completedWwiseFullBnkInit = true;
+                return;
+            }
+        }
 
         foreach (var soundbank in soundBankFiles)
         {

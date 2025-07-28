@@ -401,12 +401,6 @@ public partial class IoStoreReader : AbstractAesVfsReader
     private void ProcessIndex(StringComparer pathComparer)
     {
         if (!HasDirectoryIndex || TocResource.DirectoryIndexBuffer == null) throw new ParserException("No directory index");
-        if (Game == EGame.GAME_Brickadia)
-        {
-            GenerateBrickadiaIndex(pathComparer);
-            return;
-        }
-
         using var directoryIndex = new GenericBufferReader(DecryptIfEncrypted(TocResource.DirectoryIndexBuffer, IsEncrypted, true));
 
         string mountPoint;
@@ -449,6 +443,7 @@ public partial class IoStoreReader : AbstractAesVfsReader
                     var name = stringTable[fileEntry.Name];
                     var fullPathLength = Write(directoryName, directoryLength, name, true);
                     var fullPathSpan = directoryName.AsSpan(..fullPathLength);
+                    if (Game == EGame.GAME_NeedForSpeedMobile) fullPathSpan = fullPathSpan.SubstringAfter("../../../");
                     var path = new string(fullPathSpan);
 
                     var entry = new FIoStoreEntry(this, path, fileEntry.UserData);

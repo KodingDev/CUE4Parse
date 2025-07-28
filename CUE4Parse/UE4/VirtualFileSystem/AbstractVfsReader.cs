@@ -55,7 +55,7 @@ namespace CUE4Parse.UE4.VirtualFileSystem
         {
             var badMountPoint = !mountPoint.StartsWith("../../..");
             mountPoint = mountPoint.SubstringAfter("../../..");
-            if (mountPoint[0] != '/' || ( (mountPoint.Length > 1) && (mountPoint[1] == '.') ))
+            if (mountPoint == "" || mountPoint[0] != '/' || ( (mountPoint.Length > 1) && (mountPoint[1] == '.') ))
                 badMountPoint = true;
 
             if (badMountPoint)

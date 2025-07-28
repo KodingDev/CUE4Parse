@@ -40,6 +40,7 @@ namespace CUE4Parse.UE4.Objects.UObject
         public const uint PACKAGE_FILE_TAG_ACE7 = 0x37454341U; // ACE7
         private const uint PACKAGE_FILE_TAG_ONE = 0x00656E6FU; // SOD2
         private const uint PACKAGE_FILE_TAG_NTE = 0xD5A8D56E;
+        private const uint PACKAGE_FILE_TAG_AE = 0x56DE5ECA; // AshEchoes
 
         public readonly uint Tag;
         public FPackageFileVersion FileVersionUE;
@@ -114,11 +115,11 @@ namespace CUE4Parse.UE4.Objects.UObject
              *		-7 indicates the texture allocation info has been removed from the summary
              *		-8 indicates that the UE5 version has been added to the summary
              *      -9 indicates a contractual change in when early exits are required based on FileVersionTooNew. At or
-		     *		   after this LegacyFileVersion, we support changing the PackageFileSummary serialization format for
-		     *		   all bytes serialized after FileVersionLicensee, and that format change can be conditional on any
-		     *		   of the versions parsed before that point. All packageloaders that understand the -9
-		     *		   legacyfileformat are required to early exit without further serialization at that point if
-		     *		   FileVersionTooNew is true.
+             *		   after this LegacyFileVersion, we support changing the PackageFileSummary serialization format for
+             *		   all bytes serialized after FileVersionLicensee, and that format change can be conditional on any
+             *		   of the versions parsed before that point. All packageloaders that understand the -9
+             *		   legacyfileformat are required to early exit without further serialization at that point if
+             *		   FileVersionTooNew is true.
              */
             const int CurrentLegacyFileVersion = -9;
             var legacyFileVersion = CurrentLegacyFileVersion;
@@ -136,7 +137,7 @@ namespace CUE4Parse.UE4.Objects.UObject
                 goto afterPackageFlags;
             }
 
-            if (Tag == PACKAGE_FILE_TAG_NTE && Ar.Game == EGame.GAME_NevernessToEverness)
+            if (Tag == PACKAGE_FILE_TAG_NTE && Ar.Game == EGame.GAME_NevernessToEverness_CBT1)
             {
                 var keyData = Ar.Read<FGuid>();
                 var decryptedDataLength = Ar.Read<int>();
@@ -160,6 +161,8 @@ namespace CUE4Parse.UE4.Objects.UObject
                 Ar = new FByteArchive("NTE - Decrypted FPackageFileSummary", decryptedData, Ar.Versions);
                 Tag = Ar.Read<uint>();
             }
+
+            if (Tag == PACKAGE_FILE_TAG_AE) Tag = PACKAGE_FILE_TAG;
 
             if (Tag != PACKAGE_FILE_TAG && Tag != PACKAGE_FILE_TAG_SWAPPED)
             {
