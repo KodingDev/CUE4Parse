@@ -31,6 +31,7 @@ public enum EGame : uint
         GAME_TEKKEN7 = GAME_UE4_14 + 1,
         GAME_TransformersOnline = GAME_UE4_14 + 2,
     GAME_UE4_15 = GameUtils.GameUe4Base + (15 << 16),
+        GAME_ConanExiles = GAME_UE4_15 + 1,
     GAME_UE4_16 = GameUtils.GameUe4Base + (16 << 16),
         GAME_PlayerUnknownsBattlegrounds = GAME_UE4_16 + 1,
         GAME_TrainSimWorld2020 = GAME_UE4_16 + 2,
@@ -90,7 +91,7 @@ public enum EGame : uint
         GAME_StellarBlade = GAME_UE4_26 + 16,
         GAME_EtheriaRestart = GAME_UE4_26 + 17,
         GAME_EvilWest = GAME_UE4_26 + 18,
-        GAME_ArenaBreakoutInifinite = GAME_UE4_26 + 19,
+        GAME_ArenaBreakoutInfinite = GAME_UE4_26 + 19,
     GAME_UE4_27 = GameUtils.GameUe4Base + (27 << 16),
         GAME_Splitgate = GAME_UE4_27 + 1,
         GAME_HYENAS = GAME_UE4_27 + 2,
@@ -117,6 +118,7 @@ public enum EGame : uint
         GAME_UnchartedWatersOrigin = GAME_UE4_27 + 23,
         GAME_LostSoulAside = GAME_UE4_27 + 24,
         GAME_GhostsofTabor = GAME_UE4_27 + 25,
+        GAME_BlueProtocol = GAME_UE4_27 + 26,
     GAME_UE4_28 = GameUtils.GameUe4Base + (28 << 16),
 
     GAME_UE4_LATEST = GAME_UE4_28,
@@ -133,6 +135,7 @@ public enum EGame : uint
         GAME_TheCastingofFrankStone = GAME_UE5_1 + 3,
         GAME_SilentHill2Remake = GAME_UE5_1 + 4,
         GAME_Dauntless = GAME_UE5_1 + 5,
+        GAME_WorldofJadeDynasty = GAME_UE5_1 + 6,
     GAME_UE5_2 = GameUtils.GameUe5Base + (2 << 16),
         GAME_DeadByDaylight_Old = GAME_UE5_2 + 1,
         GAME_PaxDei = GAME_UE5_2 + 2,
@@ -163,6 +166,7 @@ public enum EGame : uint
         GAME_DeadByDaylight = GAME_UE5_4 + 10,
         GAME_Grounded2 = GAME_UE5_4 + 11,
         GAME_MafiaTheOldCountry = GAME_UE5_4 + 12,
+        GAME_2XKO = GAME_UE5_4 + 13,
     GAME_UE5_5 = GameUtils.GameUe5Base + (5 << 16),
         GAME_Brickadia = GAME_UE5_5 + 1,
         GAME_Splitgate2 = GAME_UE5_5 + 2,
@@ -172,10 +176,13 @@ public enum EGame : uint
         GAME_ARKSurvivalAscended = GAME_UE5_5 + 6,
         GAME_NevernessToEverness = GAME_UE5_5 + 7,
         GAME_FateTrigger = GAME_UE5_5 + 8,
+        GAME_Squad = GAME_UE5_5 + 9,
+        GAME_Borderlands4 = GAME_UE5_5 + 10,
     GAME_UE5_6 = GameUtils.GameUe5Base + (6 << 16),
     GAME_UE5_7 = GameUtils.GameUe5Base + (7 << 16),
+    GAME_UE5_8 = GameUtils.GameUe5Base + (8 << 16),
 
-    GAME_UE5_LATEST = GAME_UE5_6
+    GAME_UE5_LATEST = GAME_UE5_8
 }
 
 public static class GameUtils
@@ -206,6 +213,7 @@ public static class GameUtils
                 < EGame.GAME_UE5_4 => new FPackageFileVersion(522, 1009),
                 < EGame.GAME_UE5_5 => new FPackageFileVersion(522, 1012),
                 < EGame.GAME_UE5_6 => new FPackageFileVersion(522, 1013),
+                < EGame.GAME_UE5_8 => new FPackageFileVersion(522, 1017),
                 _ => new FPackageFileVersion((int) EUnrealEngineObjectUE4Version.AUTOMATIC_VERSION, (int) EUnrealEngineObjectUE5Version.AUTOMATIC_VERSION)
             };
         }

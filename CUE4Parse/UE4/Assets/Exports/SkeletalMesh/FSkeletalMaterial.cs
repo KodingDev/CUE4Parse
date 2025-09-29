@@ -56,7 +56,7 @@ public class FSkeletalMaterial
                 if (Ar.Versions.ArbitraryVersion != null && Ar.Versions.ArbitraryVersion < new ArbitraryVersion("1.1.1573788")) break;
                 _ = new FGameplayTagContainer(Ar);
                 break;
-            case EGame.GAME_FragPunk or EGame.GAME_DaysGone:
+            case EGame.GAME_FragPunk or EGame.GAME_DaysGone or EGame.GAME_WorldofJadeDynasty:
                 Ar.Position += 4;
                 break;
             case EGame.GAME_Strinova:

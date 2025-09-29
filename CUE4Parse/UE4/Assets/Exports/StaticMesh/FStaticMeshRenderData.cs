@@ -34,8 +34,8 @@ public class FStaticMeshRenderData
         Ar.Position += Ar.Game switch
         {
             EGame.GAME_HYENAS => 1,
-            EGame.GAME_DuneAwakening => 4,
-            EGame.GAME_DaysGone => Ar.Read<int>() * 4,
+            EGame.GAME_DuneAwakening or EGame.GAME_Squad => 4,
+            EGame.GAME_DaysGone => Ar.Read<int>() * 4 + 4,
             _ => 0
         };
 
@@ -49,7 +49,7 @@ public class FStaticMeshRenderData
                 var bulkData = new FByteBulkData(Ar);
                 if (bulkData.Header.ElementCount > 0 && bulkData.Data != null)
                 {
-                    var tempAr = new FByteArchive("StaticMeshLODResources", bulkData.Data, Ar.Versions);
+                    using var tempAr = new FByteArchive("StaticMeshLODResources", bulkData.Data, Ar.Versions);
                     LODs[i] = new FStaticMeshLODResources(tempAr);
                 }
                 else
@@ -120,7 +120,7 @@ public class FStaticMeshRenderData
             }
         }
 
-        if (Ar.Game == EGame.GAME_ArenaBreakoutInifinite)
+        if (Ar.Game == EGame.GAME_ArenaBreakoutInfinite)
         {
             var flags = new FStripDataFlags(Ar);
             if (Ar.ReadBoolean())

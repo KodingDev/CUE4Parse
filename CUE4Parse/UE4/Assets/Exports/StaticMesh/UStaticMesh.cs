@@ -23,6 +23,7 @@ public class UStaticMesh : UObject
 
     public override void Deserialize(FAssetArchive Ar, long validPos)
     {
+        if(Ar.Game == EGame.GAME_WorldofJadeDynasty) Ar.Position += 12;
         base.Deserialize(Ar, validPos);
         Materials = [];
         LODForCollision = GetOrDefault(nameof(LODForCollision), 0);
@@ -72,12 +73,16 @@ public class UStaticMesh : UObject
             var bHasOccluderData = Ar.ReadBoolean();
             if (bHasOccluderData)
             {
-                if ((Ar.Game is EGame.GAME_FragPunk && Ar.ReadBoolean()) || Ar.Game is EGame.GAME_CrystalOfAtlan or EGame.GAME_Farlight84)
+                switch (Ar.Game)
                 {
-                    Ar.SkipBulkArrayData();
-                    Ar.SkipBulkArrayData();
-                    if (Ar.Game is EGame.GAME_CrystalOfAtlan) Ar.SkipBulkArrayData();
-                    if (Ar.Game is EGame.GAME_Farlight84)
+                    case EGame.GAME_CrystalOfAtlan:
+                    case EGame.GAME_FragPunk:
+                        if (Ar.Game is EGame.GAME_FragPunk && !Ar.ReadBoolean()) break;
+                        Ar.SkipBulkArrayData();
+                        Ar.SkipBulkArrayData();
+                        Ar.SkipBulkArrayData();
+                        break;
+                    case EGame.GAME_Farlight84:
                     {
                         var count = Ar.Read<int>();
                         for (var i = 0; i < count; i++)
@@ -85,12 +90,13 @@ public class UStaticMesh : UObject
                             Ar.SkipBulkArrayData();
                             Ar.SkipBulkArrayData();
                         }
+
+                        break;
                     }
-                }
-                else
-                {
-                    Ar.SkipFixedArray(12); // Vertices
-                    Ar.SkipFixedArray(2); // Indices
+                    default:
+                        Ar.SkipFixedArray(12); // Vertices
+                        Ar.SkipFixedArray(2); // Indices
+                        break;
                 }
             }
         }
@@ -131,7 +137,7 @@ public class UStaticMesh : UObject
         {
             EGame.GAME_OutlastTrials => 1,
             EGame.GAME_Farlight84 or EGame.GAME_DuneAwakening => 4,
-            EGame.GAME_DaysGone => Ar.Read<int>() * 4,
+            EGame.GAME_DaysGone => Ar.Read<int>() * 4 + 4,
             _ => 0
         };
     }
