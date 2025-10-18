@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects
 {
@@ -13,10 +13,10 @@ namespace CUE4Parse.UE4.Wwise.Objects
             SettingValue = settingValue;
         }
 
-        public void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        public void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
             writer.WritePropertyName(SettingType.ToString());
-            writer.WriteValue(SettingValue);
+            writer.WriteNumberValue(SettingValue);
         }
     }
 }

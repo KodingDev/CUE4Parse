@@ -1,6 +1,6 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -19,17 +19,17 @@ public class BaseHierarchyMusic : AbstractHierarchy
         ChildIds = new AkChildren(Ar).ChildIds;
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WritePropertyName("Flags");
-        writer.WriteValue(Flags.ToString());
+        writer.WriteStringValue(Flags.ToString());
 
         writer.WritePropertyName("ContainerHierarchy");
         writer.WriteStartObject();
-        ContainerHierarchy.WriteJson(writer, serializer);
+        ContainerHierarchy.WriteJson(writer, options);
         writer.WriteEndObject();
 
         writer.WritePropertyName("ChildIds");
-        serializer.Serialize(writer, ChildIds);
+        JsonSerializer.Serialize(writer, ChildIds, options);
     }
 }

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.Engine;
 
@@ -50,11 +50,11 @@ public class UUserDefinedStruct : UStruct
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName("StructFlags");
-        writer.WriteValue(StructFlags);
+        writer.WriteNumberValue(StructFlags);
 
         if (DefaultProperties is not { Count: > 0 })
             return;
@@ -63,7 +63,7 @@ public class UUserDefinedStruct : UStruct
         foreach (var property in DefaultProperties)
         {
             writer.WritePropertyName(property.Name.Text);
-            serializer.Serialize(writer, property.Tag);
+            JsonSerializer.Serialize(writer, property.Tag, options);
         }
         writer.WriteEndObject();
 

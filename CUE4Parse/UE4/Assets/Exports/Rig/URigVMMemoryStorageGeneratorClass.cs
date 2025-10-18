@@ -1,7 +1,7 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.RigVM;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Rig;
 
@@ -18,12 +18,12 @@ public class URigVMMemoryStorageGeneratorClass : UClass
         MemoryType = Ar.Read<ERigVMMemoryType>();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName(nameof(MemoryType));
-        serializer.Serialize(writer, MemoryType);
+        JsonSerializer.Serialize(writer, MemoryType, options);
         writer.WritePropertyName(nameof(PropertyPathDescriptions));
-        serializer.Serialize(writer, PropertyPathDescriptions);
+        JsonSerializer.Serialize(writer, PropertyPathDescriptions, options);
     }
 }

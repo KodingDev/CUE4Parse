@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Objects.Engine.Curves;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 using static CUE4Parse.UE4.Objects.Engine.Curves.ERichCurveCompressionFormat;
 using static CUE4Parse.UE4.Objects.Engine.Curves.ERichCurveInterpMode;
 using static CUE4Parse.UE4.Objects.Engine.Curves.ERichCurveTangentMode;

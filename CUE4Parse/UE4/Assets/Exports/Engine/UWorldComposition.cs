@@ -1,8 +1,9 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Engine;
 
@@ -25,15 +26,15 @@ public class UWorldComposition : UObject
         TilesStreaming = Ar.ReadArray(() => new FPackageIndex(Ar));
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName(nameof(WorldRoot));
-        writer.WriteValue(WorldRoot);
+        writer.WriteStringValue(WorldRoot);
         writer.WritePropertyName(nameof(Tiles));
-        serializer.Serialize(writer, Tiles);
+        JsonSerializer.Serialize(writer, Tiles, options);
         writer.WritePropertyName(nameof(TilesStreaming));
-        serializer.Serialize(writer, TilesStreaming);
+        JsonSerializer.Serialize(writer, TilesStreaming, options);
     }
 }
 

@@ -1,6 +1,6 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Kismet;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.DFHO.Kismet;
 
@@ -16,12 +16,12 @@ public class EX_DFInstr : KismetExpression
         Right = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName(nameof(Left));
-        serializer.Serialize(writer, Left);
+        JsonSerializer.Serialize(writer, Left, options);
         writer.WritePropertyName(nameof(Right));
-        serializer.Serialize(writer, Right);
+        JsonSerializer.Serialize(writer, Right, options);
     }
 }

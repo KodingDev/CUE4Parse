@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.MappingsProvider;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Objects.Properties;
@@ -13,7 +15,6 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Assets.Exports;
@@ -393,48 +394,48 @@ public class UObject : AbstractPropertyHolder
         }
     }
 
-    protected internal virtual void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal virtual void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         var package = Owner;
 
         // export type
         writer.WritePropertyName("Type");
-        writer.WriteValue(ExportType);
+        writer.WriteStringValue(ExportType);
 
         // object name
         writer.WritePropertyName("Name"); // ctrl click depends on the name, we always need it
-        writer.WriteValue(Name);
+        writer.WriteStringValue(Name);
 
         // outer
         if (Outer != null && Outer != package)
         {
             writer.WritePropertyName("Outer");
-            writer.WriteValue(Outer.Name); // TODO serialize the path too
+            writer.WriteStringValue(Outer.Name); // TODO serialize the path too
         }
 
         // class
         if (Class != null)
         {
             writer.WritePropertyName("Class");
-            writer.WriteValue(Class.GetFullName());
+            writer.WriteStringValue(Class.GetFullName());
         }
 
         // super
         if (Super != null)
         {
             writer.WritePropertyName("Super");
-            serializer.Serialize(writer, Super);
+            JsonSerializer.Serialize(writer, Super, options);
         }
 
         // template
         if (Template != null)
         {
             writer.WritePropertyName("Template");
-            serializer.Serialize(writer, Template);
+            JsonSerializer.Serialize(writer, Template, options);
         }
 
         writer.WritePropertyName("Flags");
-        writer.WriteValue(Flags.ToStringBitfield());
+        writer.WriteStringValue(Flags.ToStringBitfield());
 
         // export properties
         if (Properties.Count > 0)
@@ -444,7 +445,7 @@ public class UObject : AbstractPropertyHolder
             foreach (var property in Properties)
             {
                 writer.WritePropertyName(property.ArrayIndex > 0 ? $"{property.Name.Text}[{property.ArrayIndex}]" : property.Name.Text);
-                serializer.Serialize(writer, property.Tag);
+                JsonSerializer.Serialize(writer, property.Tag, options);
             }
             writer.WriteEndObject();
         }
@@ -452,10 +453,10 @@ public class UObject : AbstractPropertyHolder
         if (SerializedSparseClassDataStruct != null)
         {
             writer.WritePropertyName("SerializedSparseClassDataStruct");
-            writer.WriteValue(SerializedSparseClassDataStruct.GetFullName());
+            writer.WriteStringValue(SerializedSparseClassDataStruct.GetFullName());
 
             writer.WritePropertyName("SerializedSparseClassData");
-            serializer.Serialize(writer, SerializedSparseClassData);
+            JsonSerializer.Serialize(writer, SerializedSparseClassData, options);
         }
     }
 

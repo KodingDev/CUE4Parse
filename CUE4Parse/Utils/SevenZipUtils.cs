@@ -1,5 +1,5 @@
-﻿using System.IO;
-using System;
+﻿using System;
+using System.IO;
 using SevenZip;
 using SevenZip.Compression.LZMA;
 

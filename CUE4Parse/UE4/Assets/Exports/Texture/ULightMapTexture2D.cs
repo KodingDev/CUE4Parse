@@ -1,7 +1,7 @@
 using System;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Texture;
 
@@ -16,12 +16,12 @@ public class ULightMapTexture2D : UTexture2D
         LightmapFlags = Ar.Read<ELightMapFlags>();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("LightmapFlags");
-        writer.WriteValue(LightmapFlags.ToStringBitfield());
+        writer.WriteStringValue(LightmapFlags.ToStringBitfield());
     }
 }
 

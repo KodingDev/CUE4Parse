@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace CUE4Parse.UE4.Assets.Exports.Actor;
 
@@ -34,24 +34,24 @@ public class AInstancedFoliageActor : AISMPartitionActor
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (FoliageMeshes_Deprecated != null)
         {
             writer.WritePropertyName("FoliageMeshes_Deprecated");
-            serializer.Serialize(writer, FoliageMeshes_Deprecated);
+            JsonSerializer.Serialize(writer, FoliageMeshes_Deprecated, options);
         }
         else if (FoliageMeshes_Deprecated2 != null)
         {
             writer.WritePropertyName("FoliageMeshes_Deprecated2");
-            serializer.Serialize(writer, FoliageMeshes_Deprecated2);
+            JsonSerializer.Serialize(writer, FoliageMeshes_Deprecated2, options);
         }
         else if (FoliageInfos != null)
         {
             writer.WritePropertyName("FoliageInfos");
-            serializer.Serialize(writer, FoliageInfos);
+            JsonSerializer.Serialize(writer, FoliageInfos, options);
         }
     }
 }
@@ -95,7 +95,7 @@ public enum EFoliageImplType : byte
 
 public struct FFoliageInfo
 {
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public EFoliageImplType Type;
     public FFoliageImpl? Implementation;
 

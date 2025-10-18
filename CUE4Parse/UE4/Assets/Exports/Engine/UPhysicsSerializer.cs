@@ -1,7 +1,7 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Engine;
 
@@ -18,10 +18,10 @@ public class UPhysicsSerializer : UObject
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName(nameof(BinaryFormatData));
-        serializer.Serialize(writer, BinaryFormatData);
+        JsonSerializer.Serialize(writer, BinaryFormatData, options);
     }
 }

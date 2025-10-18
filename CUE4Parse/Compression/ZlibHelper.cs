@@ -2,12 +2,9 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Readers;
-
 using Serilog;
-
 using ZlibngDotNet;
 
 namespace CUE4Parse.Compression;

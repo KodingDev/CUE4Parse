@@ -1,7 +1,7 @@
-﻿using CUE4Parse.UE4.Assets.Readers;
+﻿using System.Text.Json;
+using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.UObject;
 
@@ -42,23 +42,23 @@ public class UFunction : UStruct
         return EAccessMode.Private;
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("FunctionFlags");
-        writer.WriteValue(FunctionFlags.ToStringBitfield());
+        writer.WriteStringValue(FunctionFlags.ToStringBitfield());
 
         if (EventGraphFunction is { IsNull: false })
         {
             writer.WritePropertyName("EventGraphFunction");
-            serializer.Serialize(writer, EventGraphFunction);
+            JsonSerializer.Serialize(writer, EventGraphFunction, options);
         }
 
         if (EventGraphCallOffset != 0)
         {
             writer.WritePropertyName("EventGraphCallOffset");
-            writer.WriteValue(EventGraphCallOffset);
+            writer.WriteNumberValue(EventGraphCallOffset);
         }
     }
 }

@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.AssetRegistry.Readers;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.AssetRegistry.Objects
 {

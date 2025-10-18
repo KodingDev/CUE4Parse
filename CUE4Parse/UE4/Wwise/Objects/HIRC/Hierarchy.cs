@@ -1,7 +1,8 @@
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
@@ -103,29 +104,28 @@ public readonly struct Hierarchy
 
 public class HierarchyConverter : JsonConverter<Hierarchy>
 {
-    public override void WriteJson(JsonWriter writer, Hierarchy value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, Hierarchy value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName("Type");
-        writer.WriteValue(value.Type.ToString());
+        writer.WriteStringValue(value.Type.ToString());
 
 #if DEBUG
         writer.WritePropertyName("Length");
-        writer.WriteValue(value.Length.ToString());
+        writer.WriteStringValue(value.Length.ToString());
 #endif
 
         writer.WritePropertyName("Id");
-        writer.WriteValue(value.Data.Id.ToString());
+        writer.WriteStringValue(value.Data.Id.ToString());
 
         writer.WritePropertyName("Data");
-        value.Data.WriteJson(writer, serializer);
+        value.Data.WriteJson(writer, options);
 
         writer.WriteEndObject();
     }
 
-    public override Hierarchy ReadJson(JsonReader reader, Type objectType, Hierarchy existingValue, bool hasExistingValue,
-        JsonSerializer serializer)
+    public override Hierarchy Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }

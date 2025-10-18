@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Text.Json;
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
@@ -11,9 +11,6 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.Utils;
-
-using Newtonsoft.Json;
-
 using Serilog;
 
 namespace CUE4Parse.GameTypes.FN.Assets.Exports
@@ -378,110 +375,110 @@ namespace CUE4Parse.GameTypes.FN.Assets.Exports
             }
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
             if (!PackageName.IsNone)
             {
                 writer.WritePropertyName("PackageName");
-                serializer.Serialize(writer, PackageName);
+                JsonSerializer.Serialize(writer, PackageName, options);
             }
 
             writer.WritePropertyName("SaveVersion");
-            writer.WriteValue((short) SaveVersion);
+            writer.WriteNumberValue((short) SaveVersion);
 
             writer.WritePropertyName("bCompressed");
-            writer.WriteValue(bCompressed);
+            writer.WriteBooleanValue(bCompressed);
 
             if (IslandTemplateId is { Length: > 0 })
             {
                 writer.WritePropertyName("IslandTemplateId");
-                writer.WriteValue(IslandTemplateId);
+                writer.WriteStringValue(IslandTemplateId);
             }
 
             if (NavmeshRequired != 0)
             {
                 writer.WritePropertyName("NavmeshRequired");
-                writer.WriteValue(NavmeshRequired);
+                writer.WriteNumberValue(NavmeshRequired);
             }
 
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             if (Center != FVector.ZeroVector)
             {
                 writer.WritePropertyName("Center");
-                serializer.Serialize(writer, Center);
+                JsonSerializer.Serialize(writer, Center, options);
             }
 
             if (HalfBoundsExtent != FVector.ZeroVector)
             {
                 writer.WritePropertyName("HalfBoundsExtent");
-                serializer.Serialize(writer, HalfBoundsExtent);
+                JsonSerializer.Serialize(writer, HalfBoundsExtent, options);
             }
 
             if (Rotation != FRotator.ZeroRotator)
             {
                 writer.WritePropertyName("Rotation");
-                serializer.Serialize(writer, Rotation);
+                JsonSerializer.Serialize(writer, Rotation, options);
             }
 
             if (LastTemplateID != 0)
             {
                 writer.WritePropertyName("LastTemplateID");
-                writer.WriteValue(LastTemplateID);
+                writer.WriteNumberValue(LastTemplateID);
             }
 
             if (TemplateRecords is { Count: > 0 })
             {
                 writer.WritePropertyName("TemplateRecords");
-                serializer.Serialize(writer, TemplateRecords);
+                JsonSerializer.Serialize(writer, TemplateRecords, options);
             }
 
             if (ActorData is { Count: > 0 })
             {
                 writer.WritePropertyName("ActorData");
-                serializer.Serialize(writer, ActorData);
+                JsonSerializer.Serialize(writer, ActorData, options);
             }
 
             if (ActorInstanceRecords is { Count: > 0 })
             {
                 writer.WritePropertyName("ActorInstanceRecords");
-                serializer.Serialize(writer, ActorInstanceRecords);
+                JsonSerializer.Serialize(writer, ActorInstanceRecords, options);
             }
 
             if (VolumeInfoActorRecords is { Count: > 0 })
             {
                 writer.WritePropertyName("VolumeInfoActorRecords");
-                serializer.Serialize(writer, VolumeInfoActorRecords);
+                JsonSerializer.Serialize(writer, VolumeInfoActorRecords, options);
             }
 
             if (bRequiresGridPlacement)
             {
                 writer.WritePropertyName("bRequiresGridPlacement");
-                writer.WriteValue(bRequiresGridPlacement);
+                writer.WriteBooleanValue(bRequiresGridPlacement);
             }
 
             if (Scale != FVector.OneVector)
             {
                 writer.WritePropertyName("Scale");
-                serializer.Serialize(writer, Scale);
+                JsonSerializer.Serialize(writer, Scale, options);
             }
 
             if (LevelStreamedActorsToDelete is { Count: > 0 })
             {
                 writer.WritePropertyName("LevelStreamedActorsToDelete");
-                serializer.Serialize(writer, LevelStreamedActorsToDelete);
+                JsonSerializer.Serialize(writer, LevelStreamedActorsToDelete, options);
             }
 
             if (PlayerPersistenceUserWipeNumber != 0)
             {
                 writer.WritePropertyName("PlayerPersistenceUserWipeNumber");
-                writer.WriteValue(PlayerPersistenceUserWipeNumber);
+                writer.WriteNumberValue(PlayerPersistenceUserWipeNumber);
             }
 
             if (VkPalette?.LinkCodeMap is { Count: > 0 })
             {
                 writer.WritePropertyName("VkPalette");
-                serializer.Serialize(writer, VkPalette);
+                JsonSerializer.Serialize(writer, VkPalette, options);
             }
         }
 

@@ -1,28 +1,28 @@
-﻿using CUE4Parse.UE4.Assets.Readers;
+﻿using System.Text.Json;
+using System.Text.Json.Nodes;
+using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CUE4Parse.UE4.Assets.Exports.Interchange;
 
 public class UAssetImportData : UObject
 {
-    public JToken? SourceDataJson;
+    public JsonNode? SourceDataJson;
 
     public override void Deserialize(FAssetArchive Ar, long validPos)
     {
         if (Ar.Ver >= EUnrealEngineObjectUE4Version.ASSET_IMPORT_DATA_AS_JSON && !Ar.IsFilterEditorOnly)
         {
             var json = Ar.ReadFString();
-            SourceDataJson = JToken.Parse(json);
+            SourceDataJson = JsonNode.Parse(json);
         }
 
         base.Deserialize(Ar, validPos);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         if (SourceDataJson != null)
         {
             writer.WritePropertyName("SourceData");

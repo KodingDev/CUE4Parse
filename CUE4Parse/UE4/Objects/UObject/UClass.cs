@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Readers;
@@ -10,7 +11,6 @@ using CUE4Parse.UE4.Objects.UObject.BlueprintDecompiler;
 using CUE4Parse.UE4.Objects.UObject.Editor;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Objects.UObject;
@@ -289,56 +289,56 @@ public class UClass : UStruct
         return stringBuilder.ToString();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (FuncMap is { Count: > 0 })
         {
             writer.WritePropertyName("FuncMap");
-            serializer.Serialize(writer, FuncMap);
+            JsonSerializer.Serialize(writer, FuncMap, options);
         }
 
         if (ClassFlags != EClassFlags.CLASS_None)
         {
             writer.WritePropertyName("ClassFlags");
-            writer.WriteValue(ClassFlags.ToStringBitfield());
+            writer.WriteStringValue(ClassFlags.ToStringBitfield());
         }
 
         if (ClassWithin is { IsNull: false })
         {
             writer.WritePropertyName("ClassWithin");
-            serializer.Serialize(writer, ClassWithin);
+            JsonSerializer.Serialize(writer, ClassWithin, options);
         }
 
         if (!ClassConfigName.IsNone)
         {
             writer.WritePropertyName("ClassConfigName");
-            serializer.Serialize(writer, ClassConfigName);
+            JsonSerializer.Serialize(writer, ClassConfigName, options);
         }
 
         if (ClassGeneratedBy is { IsNull: false })
         {
             writer.WritePropertyName("ClassGeneratedBy");
-            serializer.Serialize(writer, ClassGeneratedBy);
+            JsonSerializer.Serialize(writer, ClassGeneratedBy, options);
         }
 
         if (Interfaces is { Length: > 0 })
         {
             writer.WritePropertyName("Interfaces");
-            serializer.Serialize(writer, Interfaces);
+            JsonSerializer.Serialize(writer, Interfaces, options);
         }
 
         if (bCooked)
         {
             writer.WritePropertyName("bCooked");
-            writer.WriteValue(bCooked);
+            writer.WriteBooleanValue(bCooked);
         }
 
         if (ClassDefaultObject is { IsNull: false })
         {
             writer.WritePropertyName("ClassDefaultObject");
-            serializer.Serialize(writer, ClassDefaultObject);
+            JsonSerializer.Serialize(writer, ClassDefaultObject, options);
         }
     }
 

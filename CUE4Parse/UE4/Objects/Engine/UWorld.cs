@@ -1,7 +1,7 @@
-﻿using CUE4Parse.UE4.Assets.Readers;
+﻿using System.Text.Json;
+using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.Engine
 {
@@ -20,18 +20,18 @@ namespace CUE4Parse.UE4.Objects.Engine
             StreamingLevels = Ar.ReadArray(() => new FPackageIndex(Ar));
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("PersistentLevel");
-            serializer.Serialize(writer, PersistentLevel);
+            JsonSerializer.Serialize(writer, PersistentLevel, options);
 
             writer.WritePropertyName("ExtraReferencedObjects");
-            serializer.Serialize(writer, ExtraReferencedObjects);
+            JsonSerializer.Serialize(writer, ExtraReferencedObjects, options);
 
             writer.WritePropertyName("StreamingLevels");
-            serializer.Serialize(writer, StreamingLevels);
+            JsonSerializer.Serialize(writer, StreamingLevels, options);
         }
     }
 }

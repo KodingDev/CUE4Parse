@@ -1,7 +1,7 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.UObject
 {

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-
 using CUE4Parse.UE4.Readers;
 using Ionic.Zlib;
 

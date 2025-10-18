@@ -1,8 +1,8 @@
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.IO.Objects;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Shaders
 {

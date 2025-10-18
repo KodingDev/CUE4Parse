@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -17,15 +17,15 @@ public class BaseHierarchyModulator : AbstractHierarchy
         RtpcList = AkRtpc.ReadMultiple(Ar);
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WritePropertyName("Props");
-        serializer.Serialize(writer, Props);
+        JsonSerializer.Serialize(writer, Props, options);
 
         writer.WritePropertyName("PropRanges");
-        serializer.Serialize(writer, PropRanges);
+        JsonSerializer.Serialize(writer, PropRanges, options);
 
         writer.WritePropertyName("RtpcList");
-        serializer.Serialize(writer, RtpcList);
+        JsonSerializer.Serialize(writer, RtpcList, options);
     }
 }

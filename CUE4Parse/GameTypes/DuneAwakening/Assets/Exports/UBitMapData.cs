@@ -1,7 +1,7 @@
 using System.Collections;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.DuneAwakening.Assets.Exports;
 
@@ -21,9 +21,9 @@ public class UBitMapData : UObject
         Data = new BitArray(Ar.ReadBytes(Ar.Read<int>() >> 3));
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName(nameof(Data));
         writer.WriteStartObject();
         for (var i = 0; i < m_SizeX; i++)
@@ -39,7 +39,7 @@ public class UBitMapData : UObject
                 if (data != 0)
                 {
                     writer.WritePropertyName($"[{i}, {j}]");
-                    writer.WriteValue(data);
+                    writer.WriteNumberValue(data);
                 }
             }
         }

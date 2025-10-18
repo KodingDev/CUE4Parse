@@ -1,18 +1,17 @@
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.Engine.Curves;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace CUE4Parse.UE4.Objects.MovieScene;
 
 public readonly struct FMovieSceneChannel<T> : IUStruct
 {
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public readonly ERichCurveExtrapolation PreInfinityExtrap;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public readonly ERichCurveExtrapolation PostInfinityExtrap;
     public readonly FFrameNumber[] Times;
     public readonly FMovieSceneValue<T>[] Values;

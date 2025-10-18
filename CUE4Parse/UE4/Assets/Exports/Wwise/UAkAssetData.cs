@@ -1,8 +1,8 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Wwise;
 
@@ -21,12 +21,12 @@ public class UAkAssetData : UObject
         Data = new WwiseReader(reader);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         if (Data is null) return;
 
         writer.WritePropertyName("Data");
-        serializer.Serialize(writer, Data);
+        JsonSerializer.Serialize(writer, Data, options);
     }
 }

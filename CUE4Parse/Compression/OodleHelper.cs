@@ -5,13 +5,10 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.Utils;
-
 using OodleDotNet;
-
 using Serilog;
 
 namespace CUE4Parse.Compression;

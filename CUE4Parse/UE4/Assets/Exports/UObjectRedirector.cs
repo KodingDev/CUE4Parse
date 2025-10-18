@@ -1,6 +1,6 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports;
 
@@ -15,11 +15,11 @@ public class UObjectRedirector : UObject
         DestinationObject = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         
         writer.WritePropertyName("DestinationObject");
-        serializer.Serialize(writer, DestinationObject);
+        JsonSerializer.Serialize(writer, DestinationObject, options);
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports.Component;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Readers;
@@ -9,7 +10,6 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Assets.Exports.Texture;
@@ -129,41 +129,41 @@ public abstract class UTexture : UUnrealMaterial, IAssetUserData
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("SizeX");
-        writer.WriteValue(PlatformData.SizeX);
+        writer.WriteNumberValue(PlatformData.SizeX);
 
         writer.WritePropertyName("SizeY");
-        writer.WriteValue(PlatformData.SizeY);
+        writer.WriteNumberValue(PlatformData.SizeY);
 
         writer.WritePropertyName("PackedData");
-        writer.WriteValue(PlatformData.PackedData);
+        writer.WriteNumberValue(PlatformData.PackedData);
 
         writer.WritePropertyName("PixelFormat");
-        writer.WriteValue(Format.ToString());
+        writer.WriteStringValue(Format.ToString());
 
         if (PlatformData.OptData.ExtData != 0 && PlatformData.OptData.NumMipsInTail != 0)
         {
             writer.WritePropertyName("OptData");
-            serializer.Serialize(writer, PlatformData.OptData);
+            JsonSerializer.Serialize(writer, PlatformData.OptData, options);
         }
 
         writer.WritePropertyName("FirstMipToSerialize");
-        writer.WriteValue(PlatformData.FirstMipToSerialize);
+        writer.WriteNumberValue(PlatformData.FirstMipToSerialize);
 
         if (PlatformData.Mips is { Length: > 0 })
         {
             writer.WritePropertyName("Mips");
-            serializer.Serialize(writer, PlatformData.Mips);
+            JsonSerializer.Serialize(writer, PlatformData.Mips, options);
         }
 
         if (PlatformData.VTData != null)
         {
             writer.WritePropertyName("VTData");
-            serializer.Serialize(writer, PlatformData.VTData);
+            JsonSerializer.Serialize(writer, PlatformData.VTData, options);
         }
     }
 

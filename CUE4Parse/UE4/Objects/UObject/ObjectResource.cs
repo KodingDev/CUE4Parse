@@ -1,13 +1,14 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 using UExport = CUE4Parse.UE4.Assets.Exports.UObject;
 
 namespace CUE4Parse.UE4.Objects.UObject
@@ -100,15 +101,15 @@ namespace CUE4Parse.UE4.Objects.UObject
             return ResolvedObject?.ToString() ?? Index.ToString();
         }
 
-        protected internal void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
             if (TryLoad<UProperty>(out var property))
             {
-                serializer.Serialize(writer, property);
+                JsonSerializer.Serialize(writer, property, options);
             }
             else
             {
-                serializer.Serialize(writer, this);
+                JsonSerializer.Serialize(writer, this, options);
             }
         }
 

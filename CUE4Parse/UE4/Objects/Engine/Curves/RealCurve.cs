@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using static CUE4Parse.UE4.Objects.Engine.Curves.ERichCurveExtrapolation;
 
 namespace CUE4Parse.UE4.Objects.Engine.Curves
@@ -42,9 +41,9 @@ namespace CUE4Parse.UE4.Objects.Engine.Curves
     public abstract class FRealCurve : IUStruct
     {
         public float DefaultValue;
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ERichCurveExtrapolation PreInfinityExtrap;
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ERichCurveExtrapolation PostInfinityExtrap;
 
         public FRealCurve()

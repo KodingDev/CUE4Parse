@@ -1,8 +1,8 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.PhysicsEngine
 {
@@ -31,16 +31,16 @@ namespace CUE4Parse.UE4.Objects.PhysicsEngine
             if (Ar.Game == EGame.GAME_DreamStar) Ar.Position += 4;
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("BodySetupGuid");
-            writer.WriteValue(BodySetupGuid.ToString());
+            writer.WriteStringValue(BodySetupGuid.ToString());
 
             if (CookedFormatData?.Formats.Count <= 0) return;
             writer.WritePropertyName("CookedFormatData");
-            serializer.Serialize(writer, CookedFormatData);
+            JsonSerializer.Serialize(writer, CookedFormatData, options);
         }
     }
 }

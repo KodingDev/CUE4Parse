@@ -1,9 +1,10 @@
-using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
-using CUE4Parse.UE4.Objects.Core.Math;
-using CUE4Parse.UE4.Versions;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Readers;
+using CUE4Parse.UE4.Objects.Core.Math;
+using CUE4Parse.UE4.Objects.UObject;
+using CUE4Parse.UE4.Versions;
 
 namespace CUE4Parse.UE4.Kismet;
 
@@ -43,15 +44,15 @@ public abstract class KismetExpression
     public virtual EExprToken Token => EExprToken.EX_Nothing;
     public int StatementIndex = 0;
 
-    protected internal virtual void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal virtual void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
         writer.WritePropertyName("Inst");
-        writer.WriteValue(Token.ToString());
+        writer.WriteStringValue(Token.ToString());
 
         if (bAddIndex)
         {
             writer.WritePropertyName("StatementIndex");
-            writer.WriteValue(StatementIndex);
+            writer.WriteNumberValue(StatementIndex);
         }
     }
 }
@@ -60,11 +61,11 @@ public abstract class KismetExpression<T> : KismetExpression
 {
     public T Value;
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Value");
-        serializer.Serialize(writer, Value);
+        JsonSerializer.Serialize(writer, Value, options);
     }
 }
 
@@ -80,13 +81,13 @@ public class EX_AddMulticastDelegate : KismetExpression
         DelegateToAdd = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("MulticastDelegate");
-        serializer.Serialize(writer, Delegate);
+        JsonSerializer.Serialize(writer, Delegate, options);
         writer.WritePropertyName("Delegate");
-        serializer.Serialize(writer, DelegateToAdd);
+        JsonSerializer.Serialize(writer, DelegateToAdd, options);
     }
 }
 
@@ -103,13 +104,13 @@ public class EX_ArrayConst : KismetExpression
         Elements = Ar.ReadExpressionArray(EExprToken.EX_EndArrayConst);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("InnerProperty");
-        serializer.Serialize(writer, InnerProperty);
+        JsonSerializer.Serialize(writer, InnerProperty, options);
         writer.WritePropertyName("Values");
-        serializer.Serialize(writer, Elements);
+        JsonSerializer.Serialize(writer, Elements, options);
     }
 }
 
@@ -125,13 +126,13 @@ public class EX_ArrayGetByRef : KismetExpression
         ArrayIndex = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("ArrayVariable");
-        serializer.Serialize(writer, ArrayVariable);
+        JsonSerializer.Serialize(writer, ArrayVariable, options);
         writer.WritePropertyName("ArrayIndex");
-        serializer.Serialize(writer, ArrayIndex);
+        JsonSerializer.Serialize(writer, ArrayIndex, options);
     }
 }
 
@@ -149,15 +150,15 @@ public class EX_Assert : KismetExpression
         AssertExpression = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("LineNumber");
-        writer.WriteValue(LineNumber);
+        writer.WriteNumberValue(LineNumber);
         writer.WritePropertyName("DebugMode");
-        writer.WriteValue(DebugMode);
+        writer.WriteBooleanValue(DebugMode);
         writer.WritePropertyName("AssertExpression");
-        serializer.Serialize(writer, AssertExpression);
+        JsonSerializer.Serialize(writer, AssertExpression, options);
     }
 }
 
@@ -175,15 +176,15 @@ public class EX_BindDelegate : KismetExpression
         ObjectTerm = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("FunctionName");
-        serializer.Serialize(writer, FunctionName);
+        JsonSerializer.Serialize(writer, FunctionName, options);
         writer.WritePropertyName("Delegate");
-        serializer.Serialize(writer, Delegate);
+        JsonSerializer.Serialize(writer, Delegate, options);
         writer.WritePropertyName("ObjectTerm");
-        serializer.Serialize(writer, ObjectTerm);
+        JsonSerializer.Serialize(writer, ObjectTerm, options);
     }
 }
 
@@ -223,15 +224,15 @@ public class EX_CallMulticastDelegate : KismetExpression
         Parameters = Ar.ReadExpressionArray(EExprToken.EX_EndFunctionParms);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("FunctionName");
-        serializer.Serialize(writer, StackNode);
+        JsonSerializer.Serialize(writer, StackNode, options);
         writer.WritePropertyName("Delegate");
-        serializer.Serialize(writer, Delegate);
+        JsonSerializer.Serialize(writer, Delegate, options);
         writer.WritePropertyName("Parameters");
-        serializer.Serialize(writer, Parameters);
+        JsonSerializer.Serialize(writer, Parameters, options);
     }
 }
 
@@ -247,13 +248,13 @@ public class EX_Cast : KismetExpression
         Target = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("ConversionType");
-        writer.WriteValue(ConversionType.ToString());
+        writer.WriteStringValue(ConversionType.ToString());
         writer.WritePropertyName("Target");
-        serializer.Serialize(writer, Target);
+        JsonSerializer.Serialize(writer, Target, options);
     }
 }
 
@@ -268,13 +269,13 @@ public abstract class EX_CastBase : KismetExpression
         Target = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("InterfaceClass");
-        serializer.Serialize(writer, ClassPtr);
+        JsonSerializer.Serialize(writer, ClassPtr, options);
         writer.WritePropertyName("Target");
-        serializer.Serialize(writer, Target);
+        JsonSerializer.Serialize(writer, Target, options);
     }
 }
 
@@ -297,13 +298,13 @@ public class EX_BitFieldConst : KismetExpression
         ConstValue = Ar.Read<byte>();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("InnerProperty");
-        serializer.Serialize(writer, InnerProperty);
+        JsonSerializer.Serialize(writer, InnerProperty, options);
         writer.WritePropertyName("ConstValue");
-        serializer.Serialize(writer, ConstValue);
+        JsonSerializer.Serialize(writer, ConstValue, options);
     }
 }
 
@@ -324,11 +325,11 @@ public class EX_ClearMulticastDelegate : KismetExpression
         DelegateToClear = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("DelegateToClear");
-        serializer.Serialize(writer, DelegateToClear);
+        JsonSerializer.Serialize(writer, DelegateToClear, options);
     }
 }
 
@@ -342,11 +343,11 @@ public class EX_ComputedJump : KismetExpression
         CodeOffsetExpression = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("OffsetExpression");
-        serializer.Serialize(writer, CodeOffsetExpression);
+        JsonSerializer.Serialize(writer, CodeOffsetExpression, options);
     }
 }
 
@@ -366,17 +367,17 @@ public class EX_Context : KismetExpression
         ContextExpression = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("ObjectExpression");
-        serializer.Serialize(writer, ObjectExpression);
+        JsonSerializer.Serialize(writer, ObjectExpression, options);
         writer.WritePropertyName("Offset");
-        writer.WriteValue(Offset);
+        writer.WriteNumberValue(Offset);
         writer.WritePropertyName("RValuePointer");
-        serializer.Serialize(writer, RValuePointer);
+        JsonSerializer.Serialize(writer, RValuePointer, options);
         writer.WritePropertyName("ContextExpression");
-        serializer.Serialize(writer, ContextExpression);
+        JsonSerializer.Serialize(writer, ContextExpression, options);
     }
 }
 
@@ -497,13 +498,13 @@ public class EX_FinalFunction : KismetExpression
         Parameters = Ar.ReadExpressionArray(EExprToken.EX_EndFunctionParms);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Function");
-        serializer.Serialize(writer, StackNode);
+        JsonSerializer.Serialize(writer, StackNode, options);
         writer.WritePropertyName("Parameters");
-        serializer.Serialize(writer, Parameters);
+        JsonSerializer.Serialize(writer, Parameters, options);
 
         if (Parameters.Length == 1 && Parameters[0] is EX_IntConst offsetint)
         {
@@ -517,7 +518,7 @@ public class EX_FinalFunction : KismetExpression
                 ObjectPath.Append(offsetint.Value);
                 ObjectPath.Append(']');
                 writer.WritePropertyName("ObjectPath");
-                writer.WriteValue(ObjectPath.ToString());
+                writer.WriteStringValue(ObjectPath.ToString());
             }
         }
     }
@@ -543,11 +544,11 @@ public class EX_InstanceDelegate : KismetExpression
         FunctionName = Ar.ReadFName();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("FunctionName");
-        serializer.Serialize(writer, FunctionName);
+        JsonSerializer.Serialize(writer, FunctionName, options);
     }
 }
 
@@ -575,13 +576,13 @@ public class EX_InstrumentationEvent : KismetExpression
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         if (EventType.Equals(EScriptInstrumentationType.InlineEvent))
         {
             writer.WritePropertyName("EventName");
-            serializer.Serialize(writer, EventName);
+            JsonSerializer.Serialize(writer, EventName, options);
         }
     }
 }
@@ -636,11 +637,11 @@ public class EX_InterfaceContext : KismetExpression
         InterfaceValue = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("InterfaceValue");
-        serializer.Serialize(writer, InterfaceValue);
+        JsonSerializer.Serialize(writer, InterfaceValue, options);
     }
 }
 
@@ -666,14 +667,14 @@ public class EX_Jump : KismetExpression
         _objectPath = $"{Ar.Owner.Name}.{ObjectName}[{CodeOffset}]";
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
 
         writer.WritePropertyName("CodeOffset");
-        writer.WriteValue(CodeOffset);
+        writer.WriteNumberValue(CodeOffset);
         writer.WritePropertyName("ObjectPath");
-        writer.WriteValue(_objectPath);
+        writer.WriteStringValue(_objectPath);
     }
 }
 
@@ -687,11 +688,11 @@ public class EX_JumpIfNot : EX_Jump
         BooleanExpression = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("BooleanExpression");
-        serializer.Serialize(writer, BooleanExpression);
+        JsonSerializer.Serialize(writer, BooleanExpression, options);
     }
 }
 public class EX_Let : KismetExpression
@@ -708,15 +709,15 @@ public class EX_Let : KismetExpression
         Assignment = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         //writer.WritePropertyName("Property");
-        //serializer.Serialize(writer, Property);
+        //JsonSerializer.Serialize(writer, Property, options);
         writer.WritePropertyName("Variable");
-        serializer.Serialize(writer, Variable);
+        JsonSerializer.Serialize(writer, Variable, options);
         writer.WritePropertyName("Expression");
-        serializer.Serialize(writer, Assignment);
+        JsonSerializer.Serialize(writer, Assignment, options);
     }
 }
 
@@ -731,13 +732,13 @@ public abstract class EX_LetBase : KismetExpression
         Assignment = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Variable");
-        serializer.Serialize(writer, Variable);
+        JsonSerializer.Serialize(writer, Variable, options);
         writer.WritePropertyName("Expression");
-        serializer.Serialize(writer, Assignment);
+        JsonSerializer.Serialize(writer, Assignment, options);
     }
 }
 
@@ -780,13 +781,13 @@ public class EX_LetValueOnPersistentFrame : KismetExpression
         AssignmentExpression = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("DestinationProperty");
-        serializer.Serialize(writer, DestinationProperty);
+        JsonSerializer.Serialize(writer, DestinationProperty, options);
         writer.WritePropertyName("AssignmentExpression");
-        serializer.Serialize(writer, AssignmentExpression);
+        JsonSerializer.Serialize(writer, AssignmentExpression, options);
     }
 }
 
@@ -840,13 +841,13 @@ public class EX_MapConst : KismetExpression
         Elements = Ar.ReadExpressionArray(EExprToken.EX_EndMapConst);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("KeyProperty");
-        serializer.Serialize(writer, KeyProperty);
+        JsonSerializer.Serialize(writer, KeyProperty, options);
         writer.WritePropertyName("ValueProperty");
-        serializer.Serialize(writer, ValueProperty);
+        JsonSerializer.Serialize(writer, ValueProperty, options);
 
         writer.WritePropertyName("Values");
         writer.WriteStartArray();
@@ -854,9 +855,9 @@ public class EX_MapConst : KismetExpression
         {
             writer.WriteStartObject();
             writer.WritePropertyName("Key");
-            serializer.Serialize(writer, Elements[2 * (j - 1)]);
+            JsonSerializer.Serialize(writer, Elements[2 * (j - 1)]);
             writer.WritePropertyName("Value");
-            serializer.Serialize(writer, Elements[2 * (j - 1) + 1]);
+            JsonSerializer.Serialize(writer, Elements[2 * (j - 1) + 1]);
             writer.WriteEndObject();
         }
         writer.WriteEndArray();
@@ -934,11 +935,11 @@ public class EX_PopExecutionFlowIfNot : KismetExpression
         BooleanExpression = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("BooleanExpression");
-        serializer.Serialize(writer, BooleanExpression);
+        JsonSerializer.Serialize(writer, BooleanExpression, options);
     }
 }
 
@@ -952,11 +953,11 @@ public class EX_PropertyConst : KismetExpression
         Property = new FKismetPropertyPointer(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Property");
-        serializer.Serialize(writer, Property);
+        JsonSerializer.Serialize(writer, Property, options);
     }
 }
 
@@ -977,13 +978,13 @@ public class EX_PushExecutionFlow : KismetExpression
         ObjectPath.Append(']');
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("PushingAddress");
-        writer.WriteValue(PushingAddress);
+        writer.WriteNumberValue(PushingAddress);
         writer.WritePropertyName("ObjectPath");
-        writer.WriteValue(ObjectPath.ToString());
+        writer.WriteStringValue(ObjectPath.ToString());
     }
 }
 
@@ -999,13 +1000,13 @@ public class EX_RemoveMulticastDelegate : KismetExpression
         DelegateToAdd = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("MulticastDelegate");
-        serializer.Serialize(writer, Delegate);
+        JsonSerializer.Serialize(writer, Delegate, options);
         writer.WritePropertyName("Delegate");
-        serializer.Serialize(writer, DelegateToAdd);
+        JsonSerializer.Serialize(writer, DelegateToAdd, options);
     }
 }
 
@@ -1019,11 +1020,11 @@ public class EX_Return : KismetExpression
         ReturnExpression = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Expression");
-        serializer.Serialize(writer, ReturnExpression);
+        JsonSerializer.Serialize(writer, ReturnExpression, options);
     }
 }
 
@@ -1063,21 +1064,21 @@ public class EX_SetArray : KismetExpression
         Elements = Ar.ReadExpressionArray(EExprToken.EX_EndArray);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         if (AssigningProperty is not null)
         {
             writer.WritePropertyName("AssigningProperty");
-            serializer.Serialize(writer, AssigningProperty);
+            JsonSerializer.Serialize(writer, AssigningProperty, options);
         }
         else
         {
             writer.WritePropertyName("ArrayInnerProp");
-            serializer.Serialize(writer, ArrayInnerProp);
+            JsonSerializer.Serialize(writer, ArrayInnerProp, options);
         }
         writer.WritePropertyName("Elements");
-        serializer.Serialize(writer, Elements);
+        JsonSerializer.Serialize(writer, Elements, options);
     }
 }
 
@@ -1094,13 +1095,13 @@ public class EX_SetConst : KismetExpression
         Elements = Ar.ReadExpressionArray(EExprToken.EX_EndSetConst);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("InnerProperty");
-        serializer.Serialize(writer, InnerProperty);
+        JsonSerializer.Serialize(writer, InnerProperty, options);
         writer.WritePropertyName("Elements");
-        serializer.Serialize(writer, Elements);
+        JsonSerializer.Serialize(writer, Elements, options);
     }
 }
 
@@ -1117,20 +1118,20 @@ public class EX_SetMap : KismetExpression
         Elements = Ar.ReadExpressionArray(EExprToken.EX_EndMap);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("MapProperty");
-        serializer.Serialize(writer, MapProperty);
+        JsonSerializer.Serialize(writer, MapProperty, options);
         writer.WritePropertyName("Values");
         writer.WriteStartArray();
         for (var j = 1; j <= Elements.Length / 2; j++)
         {
             writer.WriteStartObject();
             writer.WritePropertyName("Key");
-            serializer.Serialize(writer, Elements[2 * (j - 1)]);
+            JsonSerializer.Serialize(writer, Elements[2 * (j - 1)]);
             writer.WritePropertyName("Value");
-            serializer.Serialize(writer, Elements[2 * (j - 1) + 1]);
+            JsonSerializer.Serialize(writer, Elements[2 * (j - 1) + 1]);
             writer.WriteEndObject();
         }
         writer.WriteEndArray();
@@ -1150,13 +1151,13 @@ public class EX_SetSet : KismetExpression
         Elements = Ar.ReadExpressionArray(EExprToken.EX_EndSet);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("SetProperty");
-        serializer.Serialize(writer, SetProperty);
+        JsonSerializer.Serialize(writer, SetProperty, options);
         writer.WritePropertyName("Elements");
-        serializer.Serialize(writer, Elements);
+        JsonSerializer.Serialize(writer, Elements, options);
     }
 }
 
@@ -1171,11 +1172,11 @@ public class EX_Skip : EX_Jump
         SkipExpression = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("SkipExpression");
-        serializer.Serialize(writer, SkipExpression);
+        JsonSerializer.Serialize(writer, SkipExpression, options);
 
     }
 }
@@ -1225,13 +1226,13 @@ public class EX_StructConst : KismetExpression
         Properties = Ar.ReadExpressionArray(EExprToken.EX_EndStructConst);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Struct");
-        serializer.Serialize(writer, Struct);
+        JsonSerializer.Serialize(writer, Struct, options);
         writer.WritePropertyName("Properties");
-        serializer.Serialize(writer, Properties);
+        JsonSerializer.Serialize(writer, Properties, options);
     }
 }
 
@@ -1247,13 +1248,13 @@ public class EX_StructMemberContext : KismetExpression
         StructExpression = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Property");
-        serializer.Serialize(writer, Property);
+        JsonSerializer.Serialize(writer, Property, options);
         writer.WritePropertyName("StructExpression");
-        serializer.Serialize(writer, StructExpression);
+        JsonSerializer.Serialize(writer, StructExpression, options);
     }
 }
 
@@ -1288,17 +1289,17 @@ public class EX_SwitchValue : KismetExpression
         DefaultTerm = Ar.ReadExpression();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("IndexTerm");
-        serializer.Serialize(writer, IndexTerm);
+        JsonSerializer.Serialize(writer, IndexTerm, options);
         writer.WritePropertyName("EndGotoOffset");
-        writer.WriteValue(EndGotoOffset);
+        writer.WriteNumberValue(EndGotoOffset);
         writer.WritePropertyName("Cases");
-        serializer.Serialize(writer, Cases);
+        JsonSerializer.Serialize(writer, Cases, options);
         writer.WritePropertyName("DefaultTerm");
-        serializer.Serialize(writer, DefaultTerm);
+        JsonSerializer.Serialize(writer, DefaultTerm, options);
     }
 }
 
@@ -1363,11 +1364,11 @@ public abstract class EX_VariableBase : KismetExpression
         Variable = new FKismetPropertyPointer(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Variable");
-        serializer.Serialize(writer, Variable);
+        JsonSerializer.Serialize(writer, Variable, options);
     }
 }
 
@@ -1403,13 +1404,13 @@ public class EX_VirtualFunction : KismetExpression
         Parameters = Ar.ReadExpressionArray(EExprToken.EX_EndFunctionParms);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Function");
-        serializer.Serialize(writer, VirtualFunctionName);
+        JsonSerializer.Serialize(writer, VirtualFunctionName, options);
         writer.WritePropertyName("Parameters");
-        serializer.Serialize(writer, Parameters);
+        JsonSerializer.Serialize(writer, Parameters, options);
     }
 }
 
@@ -1430,13 +1431,13 @@ public class EX_AutoRtfmStopTransact : KismetExpression
         Mode = Ar.Read<EAutoRtfmStopTransactMode>();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Id");
-        writer.WriteValue(Id);
+        writer.WriteNumberValue(Id);
         writer.WritePropertyName("Mode");
-        writer.WriteValue(Mode);
+        writer.WriteNumberValue((int)Mode);
     }
 }
 
@@ -1454,15 +1455,15 @@ public class EX_AutoRtfmTransact : KismetExpression
         Parameters = Ar.ReadExpressionArray(EExprToken.EX_AutoRtfmStopTransact);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer, bool bAddIndex = false)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options, bool bAddIndex = false)
     {
-        base.WriteJson(writer, serializer, bAddIndex);
+        base.WriteJson(writer, options, bAddIndex);
         writer.WritePropertyName("Id");
-        writer.WriteValue(Id);
+        writer.WriteNumberValue(Id);
         writer.WritePropertyName("CodeOffset");
-        writer.WriteValue(CodeOffset);
+        writer.WriteNumberValue(CodeOffset);
         writer.WritePropertyName("Parameters");
-        serializer.Serialize(writer, Parameters);
+        JsonSerializer.Serialize(writer, Parameters, options);
     }
 }
 

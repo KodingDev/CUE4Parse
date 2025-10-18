@@ -1,9 +1,9 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.GameTypes.FF7.Objects;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.FF7.Assets.Exports;
 
@@ -27,9 +27,9 @@ public class UEndTextResource : UObject
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (Strings?.Count > 0)
         {
@@ -38,7 +38,7 @@ public class UEndTextResource : UObject
             foreach (var (key, val) in Strings)
             {
                 writer.WritePropertyName(key);
-                serializer.Serialize(writer, val);
+                JsonSerializer.Serialize(writer, val, options);
             }
             writer.WriteEndObject();
         }

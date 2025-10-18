@@ -1,5 +1,5 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -15,16 +15,16 @@ public class HierarchySoundSfxVoice : AbstractHierarchy
         BaseParams = new BaseHierarchy(Ar);
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName("Source");
-        serializer.Serialize(writer, Source);
+        JsonSerializer.Serialize(writer, Source, options);
 
         writer.WritePropertyName("BaseParams");
         writer.WriteStartObject();
-        BaseParams.WriteJson(writer, serializer);
+        BaseParams.WriteJson(writer, options);
         writer.WriteEndObject();
 
         writer.WriteEndObject();

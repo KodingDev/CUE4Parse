@@ -1,7 +1,7 @@
 using System;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.UObject;
 
@@ -357,44 +357,44 @@ public class FProperty : FField
         return EAccessMode.Private;
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (ArrayDim != 1)
         {
             writer.WritePropertyName("ArrayDim");
-            writer.WriteValue(ArrayDim);
+            writer.WriteNumberValue(ArrayDim);
         }
 
         if (ElementSize != 0)
         {
             writer.WritePropertyName("ElementSize");
-            writer.WriteValue(ElementSize);
+            writer.WriteNumberValue(ElementSize);
         }
 
         if (PropertyFlags != 0)
         {
             writer.WritePropertyName("PropertyFlags");
-            writer.WriteValue(PropertyFlags.ToStringBitfield());
+            writer.WriteStringValue(PropertyFlags.ToStringBitfield());
         }
 
         if (RepIndex != 0)
         {
             writer.WritePropertyName("RepIndex");
-            writer.WriteValue(RepIndex);
+            writer.WriteNumberValue(RepIndex);
         }
 
         if (!RepNotifyFunc.IsNone)
         {
             writer.WritePropertyName("RepNotifyFunc");
-            serializer.Serialize(writer, RepNotifyFunc);
+            JsonSerializer.Serialize(writer, RepNotifyFunc, options);
         }
 
         if (BlueprintReplicationCondition != ELifetimeCondition.COND_None)
         {
             writer.WritePropertyName("BlueprintReplicationCondition");
-            writer.WriteValue(BlueprintReplicationCondition.ToString());
+            writer.WriteStringValue(BlueprintReplicationCondition.ToString());
         }
     }
 }
@@ -409,12 +409,12 @@ public class FArrayProperty : FProperty
         Inner = (FProperty?) SerializeSingleField(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("Inner");
-        serializer.Serialize(writer, Inner);
+        JsonSerializer.Serialize(writer, Inner, options);
     }
 }
 
@@ -438,27 +438,27 @@ public class FBoolProperty : FProperty
         bIsNativeBool = Ar.ReadFlag();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("FieldSize");
-        writer.WriteValue(FieldSize);
+        writer.WriteNumberValue(FieldSize);
 
         writer.WritePropertyName("ByteOffset");
-        writer.WriteValue(ByteOffset);
+        writer.WriteNumberValue(ByteOffset);
 
         writer.WritePropertyName("ByteMask");
-        writer.WriteValue(ByteMask);
+        writer.WriteNumberValue(ByteMask);
 
         writer.WritePropertyName("FieldMask");
-        writer.WriteValue(FieldMask);
+        writer.WriteNumberValue(FieldMask);
 
         writer.WritePropertyName("BoolSize");
-        writer.WriteValue(BoolSize);
+        writer.WriteNumberValue(BoolSize);
 
         writer.WritePropertyName("bIsNativeBool");
-        writer.WriteValue(bIsNativeBool);
+        writer.WriteBooleanValue(bIsNativeBool);
     }
 }
 
@@ -472,12 +472,12 @@ public class FByteProperty : FNumericProperty
         Enum = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("Enum");
-        serializer.Serialize(writer, Enum);
+        JsonSerializer.Serialize(writer, Enum, options);
     }
 }
 
@@ -491,12 +491,12 @@ public class FClassProperty : FObjectProperty
         MetaClass = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("MetaClass");
-        serializer.Serialize(writer, MetaClass);
+        JsonSerializer.Serialize(writer, MetaClass, options);
     }
 }
 
@@ -510,12 +510,12 @@ public class FDelegateProperty : FProperty
         SignatureFunction = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("SignatureFunction");
-        serializer.Serialize(writer, SignatureFunction);
+        JsonSerializer.Serialize(writer, SignatureFunction, options);
     }
 }
 
@@ -531,15 +531,15 @@ public class FEnumProperty : FProperty
         UnderlyingProp = (FNumericProperty?) SerializeSingleField(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("Enum");
-        serializer.Serialize(writer, Enum);
+        JsonSerializer.Serialize(writer, Enum, options);
 
         writer.WritePropertyName("UnderlyingProp");
-        serializer.Serialize(writer, UnderlyingProp);
+        JsonSerializer.Serialize(writer, UnderlyingProp, options);
     }
 }
 
@@ -576,12 +576,12 @@ public class FInterfaceProperty : FProperty
         InterfaceClass = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("InterfaceClass");
-        serializer.Serialize(writer, InterfaceClass);
+        JsonSerializer.Serialize(writer, InterfaceClass, options);
     }
 }
 
@@ -597,15 +597,15 @@ public class FMapProperty : FProperty
         ValueProp = (FProperty?) SerializeSingleField(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("KeyProp");
-        serializer.Serialize(writer, KeyProp);
+        JsonSerializer.Serialize(writer, KeyProp, options);
 
         writer.WritePropertyName("ValueProp");
-        serializer.Serialize(writer, ValueProp);
+        JsonSerializer.Serialize(writer, ValueProp, options);
     }
 }
 
@@ -619,12 +619,12 @@ public class FMulticastDelegateProperty : FProperty
         SignatureFunction = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("SignatureFunction");
-        serializer.Serialize(writer, SignatureFunction);
+        JsonSerializer.Serialize(writer, SignatureFunction, options);
     }
 }
 
@@ -638,12 +638,12 @@ public class FMulticastInlineDelegateProperty : FProperty
         SignatureFunction = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("SignatureFunction");
-        serializer.Serialize(writer, SignatureFunction);
+        JsonSerializer.Serialize(writer, SignatureFunction, options);
     }
 }
 
@@ -661,12 +661,12 @@ public class FObjectProperty : FProperty
         PropertyClass = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("PropertyClass");
-        serializer.Serialize(writer, PropertyClass);
+        JsonSerializer.Serialize(writer, PropertyClass, options);
     }
 }
 
@@ -680,12 +680,12 @@ public class FSoftClassProperty : FObjectProperty
         MetaClass = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("MetaClass");
-        serializer.Serialize(writer, MetaClass);
+        JsonSerializer.Serialize(writer, MetaClass, options);
     }
 }
 
@@ -701,12 +701,12 @@ public class FSetProperty : FProperty
         ElementProp = (FProperty?) SerializeSingleField(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("ElementProp");
-        serializer.Serialize(writer, ElementProp);
+        JsonSerializer.Serialize(writer, ElementProp, options);
     }
 }
 
@@ -723,12 +723,12 @@ public class FStructProperty : FProperty
         Struct = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("Struct");
-        serializer.Serialize(writer, Struct);
+        JsonSerializer.Serialize(writer, Struct, options);
     }
 }
 
@@ -752,12 +752,12 @@ public class FOptionalProperty : FProperty
         ValueProperty = (FProperty?) SerializeSingleField(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("ValueProperty");
-        serializer.Serialize(writer, ValueProperty);
+        JsonSerializer.Serialize(writer, ValueProperty, options);
     }
 }
 
@@ -771,12 +771,12 @@ public class FVerseStringProperty : FProperty
         ValueProperty = (FProperty?) SerializeSingleField(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("ValueProperty");
-        serializer.Serialize(writer, ValueProperty);
+        JsonSerializer.Serialize(writer, ValueProperty, options);
     }
 }
 
@@ -790,12 +790,12 @@ public class FVerseFunctionProperty : FProperty
         Function = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("Struct");
-        serializer.Serialize(writer, Function);
+        JsonSerializer.Serialize(writer, Function, options);
     }
 }
 

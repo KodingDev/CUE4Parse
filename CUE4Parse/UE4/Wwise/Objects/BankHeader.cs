@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects;
 

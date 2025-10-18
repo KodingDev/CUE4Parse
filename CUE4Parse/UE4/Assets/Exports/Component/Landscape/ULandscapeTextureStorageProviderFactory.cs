@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Component.Landscape;
 
@@ -28,24 +28,24 @@ public class ULandscapeTextureStorageProviderFactory : UTextureAllMipDataProvide
         Texture = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("NumNonOptionalMips");
-        writer.WriteValue(NumNonOptionalMips);
+        writer.WriteNumberValue(NumNonOptionalMips);
 
         writer.WritePropertyName("NumNonStreamingMips");
-        writer.WriteValue(NumNonStreamingMips);
+        writer.WriteNumberValue(NumNonStreamingMips);
 
         writer.WritePropertyName("LandscapeGridScale");
-        serializer.Serialize(writer, LandscapeGridScale);
+        JsonSerializer.Serialize(writer, LandscapeGridScale, options);
 
         writer.WritePropertyName("Mips");
-        serializer.Serialize(writer, Mips);
+        JsonSerializer.Serialize(writer, Mips, options);
 
         writer.WritePropertyName("Texture");
-        serializer.Serialize(writer, Texture);
+        JsonSerializer.Serialize(writer, Texture, options);
     }
 
     // Helper method to compute triangle normal

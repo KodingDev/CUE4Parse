@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
@@ -6,7 +7,6 @@ using CUE4Parse.UE4.Objects.RenderCore;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.Engine
 {
@@ -304,36 +304,36 @@ namespace CUE4Parse.UE4.Objects.Engine
             LightmassSettings = Ar.ReadArray(() => new FLightmassPrimitiveSettings(Ar));
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("Bounds");
-            serializer.Serialize(writer, Bounds);
+            JsonSerializer.Serialize(writer, Bounds, options);
 
             writer.WritePropertyName("Vectors");
-            serializer.Serialize(writer, Vectors);
+            JsonSerializer.Serialize(writer, Vectors, options);
 
             writer.WritePropertyName("Points");
-            serializer.Serialize(writer, Points);
+            JsonSerializer.Serialize(writer, Points, options);
 
             writer.WritePropertyName("Nodes");
-            serializer.Serialize(writer, Nodes);
+            JsonSerializer.Serialize(writer, Nodes, options);
 
             writer.WritePropertyName("Surfs");
-            serializer.Serialize(writer, Surfs);
+            JsonSerializer.Serialize(writer, Surfs, options);
 
             writer.WritePropertyName("NumSharedSides");
-            serializer.Serialize(writer, NumSharedSides);
+            JsonSerializer.Serialize(writer, NumSharedSides, options);
 
             writer.WritePropertyName("VertexBuffer");
-            serializer.Serialize(writer, VertexBuffer);
+            JsonSerializer.Serialize(writer, VertexBuffer, options);
 
             writer.WritePropertyName("LightingGuid");
-            serializer.Serialize(writer, LightingGuid);
+            JsonSerializer.Serialize(writer, LightingGuid, options);
 
             writer.WritePropertyName("LightmassSettings");
-            serializer.Serialize(writer, LightmassSettings);
+            JsonSerializer.Serialize(writer, LightmassSettings, options);
         }
     }
 }

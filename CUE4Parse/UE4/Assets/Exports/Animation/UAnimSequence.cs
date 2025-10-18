@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports.Animation.ACL;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
@@ -10,7 +11,6 @@ using CUE4Parse.UE4.Objects.Engine.Animation;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 using Serilog;
 using static CUE4Parse.UE4.Assets.Exports.Animation.AnimationCompressionFormat;
 
@@ -136,9 +136,9 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
             EnsuredCurveData = EnsureCurveData();
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             // Follow field order of FCompressedAnimSequence CompressedData
 
@@ -148,7 +148,7 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
                 writer.WriteStartArray();
                 foreach (var trackToSkeletonMap in CompressedTrackToSkeletonMapTable)
                 {
-                    writer.WriteValue(trackToSkeletonMap.BoneTreeIndex);
+                    writer.WriteNumberValue(trackToSkeletonMap.BoneTreeIndex);
                 }
                 writer.WriteEndArray();
             }
@@ -156,51 +156,51 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
             if (CompressedCurveNames is { Length: > 0 })
             {
                 writer.WritePropertyName("CompressedCurveNames");
-                serializer.Serialize(writer, CompressedCurveNames);
+                JsonSerializer.Serialize(writer, CompressedCurveNames, options);
             }
 
             /*if (CompressedByteStream is { Length: > 0 })
             {
                 writer.WritePropertyName("CompressedByteStream");
-                writer.WriteValue(CompressedByteStream);
+                writer.WriteNumberValue(CompressedByteStream);
             }*/
 
             /*if (CompressedCurveByteStream is { Length: > 0 })
             {
                 writer.WritePropertyName("CompressedCurveByteStream");
-                writer.WriteValue(CompressedCurveByteStream);
+                writer.WriteNumberValue(CompressedCurveByteStream);
             }*/
 
             if (EnsuredCurveData)
             {
                 writer.WritePropertyName("CompressedCurveData");
-                serializer.Serialize(writer, CompressedCurveData);
+                JsonSerializer.Serialize(writer, CompressedCurveData, options);
             }
 
             if (CompressedDataStructure != null)
             {
                 writer.WritePropertyName("CompressedDataStructure");
-                serializer.Serialize(writer, CompressedDataStructure);
+                JsonSerializer.Serialize(writer, CompressedDataStructure, options);
             }
 
             if (BoneCompressionCodec != null)
             {
                 var asReference = new ResolvedLoadedObject(BoneCompressionCodec);
                 writer.WritePropertyName("BoneCompressionCodec");
-                serializer.Serialize(writer, asReference);
+                JsonSerializer.Serialize(writer, asReference, options);
             }
 
             if (CurveCompressionCodec != null)
             {
                 var asReference = new ResolvedLoadedObject(CurveCompressionCodec);
                 writer.WritePropertyName("CurveCompressionCodec");
-                serializer.Serialize(writer, asReference);
+                JsonSerializer.Serialize(writer, asReference, options);
             }
 
             if (CompressedRawDataSize > 0)
             {
                 writer.WritePropertyName("CompressedRawDataSize");
-                writer.WriteValue(CompressedRawDataSize);
+                writer.WriteNumberValue(CompressedRawDataSize);
             }
         }
 

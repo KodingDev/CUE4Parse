@@ -1,14 +1,11 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Readers;
-
-using K4os.Compression.LZ4;
-
-using ZstdSharp;
 using Ionic.Zlib;
+using K4os.Compression.LZ4;
+using ZstdSharp;
 
 namespace CUE4Parse.Compression
 {

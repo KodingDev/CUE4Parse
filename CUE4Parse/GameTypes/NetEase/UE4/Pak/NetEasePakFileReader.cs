@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using Blake3;
 using CUE4Parse.Encryption.Aes;
 using CUE4Parse.UE4.Pak.Objects;
 using CUE4Parse.UE4.Readers;
@@ -90,7 +91,7 @@ public partial class PakFileReader
 
     private int CalculateEncryptedBytesCountForMarvelRivals(FPakEntry pakEntry)
     {
-        using var hasher = Blake3.Hasher.New();
+        using var hasher = Hasher.New();
 
         var initialSeedBytes = BitConverter.GetBytes(0x44332211);
         hasher.Update(initialSeedBytes);

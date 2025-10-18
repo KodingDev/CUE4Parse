@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using CUE4Parse.Compression;
 using CUE4Parse.Encryption.Aes;
@@ -298,7 +299,7 @@ public class FPakEntry : VfsEntry
     public FPakEntry(PakFileReader reader, string path, GenericBufferReader Ar, int offset) : base(reader, path)
     {
         // UE4 reference: FPakFile::DecodePakEntry()
-        Ar.Seek(offset, System.IO.SeekOrigin.Begin);
+        Ar.Seek(offset, SeekOrigin.Begin);
         var bitfield = Ar.Read<uint>();
 
         if (reader.Game == GAME_WutheringWaves && reader.Info.Version > PakFile_Version_Fnv64BugFix)

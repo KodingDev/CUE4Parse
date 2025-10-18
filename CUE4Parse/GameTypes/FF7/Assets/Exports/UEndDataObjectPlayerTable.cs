@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using CUE4Parse.GameTypes.FF7.Assets.Objects.Properties;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.FF7.Assets.Exports;
 
@@ -41,16 +41,16 @@ public class UEndDataObjectBase : UMemoryMappedAsset
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("DataTable");
         writer.WriteStartObject();
         foreach (var (key, value) in DataTable)
         {
             writer.WritePropertyName(key.Name.ToString());
-            serializer.Serialize(writer, value);
+            JsonSerializer.Serialize(writer, value, options);
         }
         writer.WriteEndObject();
     }

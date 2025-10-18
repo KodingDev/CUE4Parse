@@ -1,10 +1,11 @@
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.Engine;
 
@@ -125,37 +126,37 @@ public class ULevel : Assets.Exports.UObject
         PrecomputedVolumeDistanceField = new FPrecomputedVolumeDistanceField(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("Actors");
-        serializer.Serialize(writer, Actors);
+        JsonSerializer.Serialize(writer, Actors, options);
 
         writer.WritePropertyName("URL");
-        serializer.Serialize(writer, URL);
+        JsonSerializer.Serialize(writer, URL, options);
 
         writer.WritePropertyName("Model");
-        serializer.Serialize(writer, Model);
+        JsonSerializer.Serialize(writer, Model, options);
 
         writer.WritePropertyName("ModelComponents");
-        serializer.Serialize(writer, ModelComponents);
+        JsonSerializer.Serialize(writer, ModelComponents, options);
 
         writer.WritePropertyName("LevelScriptActor");
-        serializer.Serialize(writer, LevelScriptActor);
+        JsonSerializer.Serialize(writer, LevelScriptActor, options);
 
         writer.WritePropertyName("NavListStart");
-        serializer.Serialize(writer, NavListStart);
+        JsonSerializer.Serialize(writer, NavListStart, options);
 
         writer.WritePropertyName("NavListEnd");
-        serializer.Serialize(writer, NavListEnd);
+        JsonSerializer.Serialize(writer, NavListEnd, options);
 
         if (PrecomputedVisibilityHandler == null) return;
 
         writer.WritePropertyName("PrecomputedVisibilityHandler");
-        serializer.Serialize(writer, PrecomputedVisibilityHandler);
+        JsonSerializer.Serialize(writer, PrecomputedVisibilityHandler, options);
 
         writer.WritePropertyName("PrecomputedVolumeDistanceField");
-        serializer.Serialize(writer, PrecomputedVolumeDistanceField);
+        JsonSerializer.Serialize(writer, PrecomputedVolumeDistanceField, options);
     }
 }

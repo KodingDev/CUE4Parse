@@ -1,5 +1,5 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -15,14 +15,14 @@ public class HierarchyAudioDevice : BaseHierarchyFx
         }
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("FxParams");
-        serializer.Serialize(writer, FxParams);
+        JsonSerializer.Serialize(writer, FxParams, options);
 
         writer.WriteEndObject();
     }

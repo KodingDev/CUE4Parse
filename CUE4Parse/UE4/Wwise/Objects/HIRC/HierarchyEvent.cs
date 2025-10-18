@@ -1,5 +1,5 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -21,12 +21,12 @@ public class HierarchyEvent : AbstractHierarchy
         EventActionIds = Ar.ReadArray<uint>(eventActionCount);
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName("EventActionIds");
-        serializer.Serialize(writer, EventActionIds);
+        JsonSerializer.Serialize(writer, EventActionIds, options);
 
         writer.WriteEndObject();
     }

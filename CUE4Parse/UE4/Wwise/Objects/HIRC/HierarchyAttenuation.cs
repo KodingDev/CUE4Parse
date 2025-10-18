@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -70,42 +70,54 @@ public class HierarchyAttenuation : AbstractHierarchy
         RtpcList = AkRtpc.ReadMultiple(Ar);
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName("IsHeightSpreadEnabled");
-        writer.WriteValue(IsHeightSpreadEnabled != 0);
+        writer.WriteBooleanValue(IsHeightSpreadEnabled != 0);
 
         writer.WritePropertyName("IsConeEnabled");
-        writer.WriteValue((IsConeEnabled & 1) != 0);
+        writer.WriteBooleanValue((IsConeEnabled & 1) != 0);
 
         if ((IsConeEnabled & 1) != 0)
         {
-            writer.WritePropertyName("InsideDegrees");
-            writer.WriteValue(InsideDegrees);
+            if (InsideDegrees.HasValue)
+            {
+                writer.WritePropertyName("InsideDegrees");
+                writer.WriteNumberValue(InsideDegrees.Value);
+            }
 
-            writer.WritePropertyName("OutsideDegrees");
-            writer.WriteValue(OutsideDegrees);
+            if (OutsideDegrees.HasValue)
+            {
+                writer.WritePropertyName("OutsideDegrees");
+                writer.WriteNumberValue(OutsideDegrees.Value);
+            }
 
-            writer.WritePropertyName("OutsideVolume");
-            writer.WriteValue(OutsideVolume);
+            if (OutsideVolume.HasValue)
+            {
+                writer.WritePropertyName("OutsideVolume");
+                writer.WriteNumberValue(OutsideVolume.Value);
+            }
 
-            writer.WritePropertyName("LoPass");
-            writer.WriteValue(LoPass);
+            if (LoPass.HasValue)
+            {
+                writer.WritePropertyName("LoPass");
+                writer.WriteNumberValue(LoPass.Value);
+            }
 
             if (HiPass.HasValue)
             {
                 writer.WritePropertyName("HiPass");
-                writer.WriteValue(HiPass);
+                writer.WriteNumberValue(HiPass.Value);
             }
         }
 
         writer.WritePropertyName("Curves");
-        serializer.Serialize(writer, Curves);
+        JsonSerializer.Serialize(writer, Curves, options);
 
         writer.WritePropertyName("RtpcList");
-        serializer.Serialize(writer, RtpcList);
+        JsonSerializer.Serialize(writer, RtpcList, options);
 
         writer.WriteEndObject();
     }

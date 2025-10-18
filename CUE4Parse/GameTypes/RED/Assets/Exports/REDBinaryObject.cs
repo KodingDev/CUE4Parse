@@ -1,7 +1,7 @@
-﻿using CUE4Parse.UE4.Assets.Exports;
+﻿using System.Text.Json;
+using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.RED.Assets.Exports;
 
@@ -18,14 +18,14 @@ public class UREDBinaryObject : UObject
         DataLE = new FByteBulkData(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("DataBE");
-        serializer.Serialize(writer, DataBE);
+        JsonSerializer.Serialize(writer, DataBE, options);
 
         writer.WritePropertyName("DataLE");
-        serializer.Serialize(writer, DataLE);
+        JsonSerializer.Serialize(writer, DataLE, options);
     }
 }

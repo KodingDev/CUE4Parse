@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.GameTypes.FF7.Assets.Exports;
 using CUE4Parse.GameTypes.FF7.Objects;
 using CUE4Parse.UE4.Assets.Objects.Properties;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.FF7.Assets.Objects.Properties;
 
@@ -138,17 +139,17 @@ public class FF7ArrayProperty : FPropertyTagType<FPropertyTagType[]>
 
 public class FF7ArrayPropertyConverter : JsonConverter<FF7ArrayProperty>
 {
-    public override void WriteJson(JsonWriter writer, FF7ArrayProperty value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FF7ArrayProperty value, JsonSerializerOptions options)
     {
         writer.WriteStartArray();
         foreach (var prop in value.Value)
         {
-            serializer.Serialize(writer, prop, prop.GetType());
+            JsonSerializer.Serialize(writer, prop, prop.GetType(), options);
         }
         writer.WriteEndArray();
     }
 
-    public override FF7ArrayProperty ReadJson(JsonReader reader, Type objectType, FF7ArrayProperty existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override FF7ArrayProperty Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }
@@ -168,18 +169,18 @@ public class FF7StructProperty : FPropertyTagType<List<FPropertyTagType>>
 
 public class FF7StructPropertyConverter : JsonConverter<FF7StructProperty>
 {
-    public override void WriteJson(JsonWriter writer, FF7StructProperty value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FF7StructProperty value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
         for (var i = 0; i < value.Value.Count; i++)
         {
             writer.WritePropertyName(value.StructDefinition[i].Name.Text);
-            serializer.Serialize(writer, value.Value[i], value.Value[i].GetType());
+            JsonSerializer.Serialize(writer, value.Value[i], value.Value[i].GetType(), options);
         }
         writer.WriteEndObject();
     }
 
-    public override FF7StructProperty ReadJson(JsonReader reader, Type objectType, FF7StructProperty existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override FF7StructProperty Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }
@@ -188,9 +189,9 @@ public class FF7StructPropertyConverter : JsonConverter<FF7StructProperty>
 [JsonConverter(typeof(FF7FPropertyTagTypeConverter))]
 public abstract class FF7FPropertyTagType<T> : FPropertyTagType<T>;
 
-public class FF7FPropertyTagTypeConverter : JsonConverter
+public class FF7FPropertyTagTypeConverter : JsonConverter<FF7FPropertyTagType<object>>
 {
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override FF7FPropertyTagType<object> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }
@@ -200,12 +201,12 @@ public class FF7FPropertyTagTypeConverter : JsonConverter
         return objectType.IsGenericType && objectType.GetGenericTypeDefinition() == typeof(FF7FPropertyTagType<>);
     }
 
-    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FF7FPropertyTagType<object> value, JsonSerializerOptions options)
     {
         var type = value.GetType();
         var valueProperty = type.GetProperty("Value"); // Get the `Value` property
         var valueToSerialize = valueProperty?.GetValue(value);
 
-        serializer.Serialize(writer, valueToSerialize);
+        JsonSerializer.Serialize(writer, valueToSerialize, options);
     }
 }

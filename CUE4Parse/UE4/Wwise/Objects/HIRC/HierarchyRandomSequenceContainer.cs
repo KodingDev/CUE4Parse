@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -62,65 +62,65 @@ public class HierarchyRandomSequenceContainer : BaseHierarchy
         Playlist = new AkPlayList(Ar).PlaylistItems;
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("LoopCount");
-        writer.WriteValue(LoopCount);
+        writer.WriteNumberValue(LoopCount);
 
         if (LoopModMin.HasValue)
         {
             writer.WritePropertyName("LoopModMin");
-            writer.WriteValue(LoopModMin);
+            writer.WriteNumberValue(LoopModMin.Value);
         }
 
         if (LoopModMax.HasValue)
         {
             writer.WritePropertyName("LoopModMax");
-            writer.WriteValue(LoopModMax);
+            writer.WriteNumberValue(LoopModMax.Value);
         }
 
         if (TransitionTime.HasValue)
         {
             writer.WritePropertyName("TransitionTime");
-            writer.WriteValue(TransitionTime);
+            writer.WriteNumberValue(TransitionTime.Value);
         }
 
         if (TransitionTimeModMin.HasValue)
         {
             writer.WritePropertyName("TransitionTimeModMin");
-            writer.WriteValue(TransitionTimeModMin);
+            writer.WriteNumberValue(TransitionTimeModMin.Value);
         }
 
         if (TransitionTimeModMax.HasValue)
         {
             writer.WritePropertyName("TransitionTimeModMax");
-            writer.WriteValue(TransitionTimeModMax);
+            writer.WriteNumberValue(TransitionTimeModMax.Value);
         }
 
         writer.WritePropertyName("AvoidRepeatCount");
-        writer.WriteValue(AvoidRepeatCount);
+        writer.WriteNumberValue(AvoidRepeatCount);
 
         writer.WritePropertyName("TransitionMode");
-        writer.WriteValue(TransitionMode.ToString());
+        writer.WriteStringValue(TransitionMode.ToString());
 
         writer.WritePropertyName("RandomMode");
-        writer.WriteValue(RandomMode.ToString());
+        writer.WriteStringValue(RandomMode.ToString());
 
         writer.WritePropertyName("Mode");
-        writer.WriteValue(Mode.ToString());
+        writer.WriteStringValue(Mode.ToString());
 
         writer.WritePropertyName("PlaylistFlags");
-        writer.WriteValue(PlaylistFlags.ToString());
+        writer.WriteStringValue(PlaylistFlags.ToString());
 
         writer.WritePropertyName("ChildIds");
-        serializer.Serialize(writer, ChildIds);
+        JsonSerializer.Serialize(writer, ChildIds, options);
 
         writer.WritePropertyName("Playlist");
-        serializer.Serialize(writer, Playlist);
+        JsonSerializer.Serialize(writer, Playlist, options);
 
         writer.WriteEndObject();
     }

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Animation.PoseSearch;
 
@@ -91,36 +92,36 @@ public class FKDTreeNode
 
 public class KDTreeNodeConverter : JsonConverter<FKDTreeNode>
 {
-    public override void WriteJson(JsonWriter writer, FKDTreeNode value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FKDTreeNode value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
         if (value.Leaf != null)
         {
 
             writer.WritePropertyName("Leaf");
-            serializer.Serialize(writer, value.Leaf);
+            JsonSerializer.Serialize(writer, value.Leaf, options);
 
         }
         else if (value.NonLeaf != null)
         {
             writer.WritePropertyName("NonLeaf");
-            serializer.Serialize(writer, value.NonLeaf);
+            JsonSerializer.Serialize(writer, value.NonLeaf, options);
         }
 
         if (value.child1 != -1)
         {
             writer.WritePropertyName("Child1Index");
-            serializer.Serialize(writer, value.child1);
+            JsonSerializer.Serialize(writer, value.child1, options);
         }
         if (value.child2 != -1)
         {
             writer.WritePropertyName("Child2Index");
-            serializer.Serialize(writer, value.child2);
+            JsonSerializer.Serialize(writer, value.child2, options);
         }
         writer.WriteEndObject();
     }
 
-    public override FKDTreeNode? ReadJson(JsonReader reader, Type objectType, FKDTreeNode? existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override FKDTreeNode Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }

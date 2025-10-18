@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.AudioSynesthesia;
 
@@ -21,17 +21,17 @@ public class ULoudnessNRT : UObject
         ChannelLoudnessIntervals = Ar.ReadMap(Ar.Read<int>, Ar.Read<FFloatInterval>);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName("DurationInSeconds");
-        writer.WriteValue(DurationInSeconds);
+        writer.WriteNumberValue(DurationInSeconds);
         writer.WritePropertyName("bIsSortedChronologically");
-        writer.WriteValue(bIsSortedChronologically);
+        writer.WriteBooleanValue(bIsSortedChronologically);
         writer.WritePropertyName("ChannelLoudnessArrays");
-        serializer.Serialize(writer, ChannelLoudnessArrays);
+        JsonSerializer.Serialize(writer, ChannelLoudnessArrays, options);
         writer.WritePropertyName("ChannelLoudnessIntervals");
-        serializer.Serialize(writer, ChannelLoudnessIntervals);
+        JsonSerializer.Serialize(writer, ChannelLoudnessIntervals, options);
     }
 }
 

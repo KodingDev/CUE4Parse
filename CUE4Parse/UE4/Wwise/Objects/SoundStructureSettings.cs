@@ -1,8 +1,6 @@
-using System;
-using System.Linq;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects
 {
@@ -33,26 +31,26 @@ namespace CUE4Parse.UE4.Wwise.Objects
             Unknown = Ar.Read<byte>();
         }
 
-        public void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        public void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
 
             writer.WritePropertyName("OutputBusId");
-            writer.WriteValue(OutputBusId);
+            writer.WriteNumberValue(OutputBusId);
 
             writer.WritePropertyName("ParentId");
-            writer.WriteValue(ParentId);
+            writer.WriteNumberValue(ParentId);
 
             writer.WritePropertyName("OverrideParentPlaybackPriority");
-            writer.WriteValue(OverrideParentPlaybackPriority);
+            writer.WriteBooleanValue(OverrideParentPlaybackPriority);
 
             writer.WritePropertyName("OffsetPriotityAtMaxDistance");
-            writer.WriteValue(OffsetPriorityAtMaxDistance);
+            writer.WriteBooleanValue(OffsetPriorityAtMaxDistance);
 
             writer.WritePropertyName("Settings");
             writer.WriteStartObject();
             foreach (Setting<ESoundStructureSettingsType> setting in Settings)
-                setting.WriteJson(writer, serializer);
+                setting.WriteJson(writer, options);
             writer.WriteEndObject();
 
             writer.WriteEndObject();

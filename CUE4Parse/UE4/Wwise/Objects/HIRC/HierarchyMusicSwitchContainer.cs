@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -50,39 +50,39 @@ public class HierarchyMusicSwitchContainer : BaseHierarchyMusic
         }
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("MeterInfo");
-        serializer.Serialize(writer, MeterInfo);
+        JsonSerializer.Serialize(writer, MeterInfo, options);
 
         writer.WritePropertyName("Stingers");
-        serializer.Serialize(writer, Stingers);
+        JsonSerializer.Serialize(writer, Stingers, options);
 
         writer.WritePropertyName("MusicTransitionRule");
-        serializer.Serialize(writer, MusicTransitionRule.Rules);
+        JsonSerializer.Serialize(writer, MusicTransitionRule.Rules, options);
 
         if (WwiseVersions.Version <= 72)
         {
             //writer.WritePropertyName("GroupSettings");
-            //serializer.Serialize(writer, GroupSettings);
+            //JsonSerializer.Serialize(writer, GroupSettings, options);
         }
         else
         {
             writer.WritePropertyName("IsContinuePlayback");
-            serializer.Serialize(writer, IsContinuePlayback);
+            JsonSerializer.Serialize(writer, IsContinuePlayback, options);
 
             writer.WritePropertyName("Mode");
-            serializer.Serialize(writer, Mode);
+            JsonSerializer.Serialize(writer, Mode, options);
 
             writer.WritePropertyName("Arguments");
-            serializer.Serialize(writer, Arguments);
+            JsonSerializer.Serialize(writer, Arguments, options);
 
             writer.WritePropertyName("DecisionTree");
-            serializer.Serialize(writer, DecisionTree);
+            JsonSerializer.Serialize(writer, DecisionTree, options);
         }
 
         writer.WriteEndObject();

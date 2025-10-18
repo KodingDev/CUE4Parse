@@ -1,8 +1,9 @@
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.MovieScene;
 
@@ -66,28 +67,28 @@ public class FMovieSceneTimeWarpVariant : IUStruct
 
 public class FMovieSceneTimeWarpVariantConverter : JsonConverter<FMovieSceneTimeWarpVariant>
 {
-    public override void WriteJson(JsonWriter writer, FMovieSceneTimeWarpVariant value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FMovieSceneTimeWarpVariant value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
         switch (value.Type)
         {
             case EMovieSceneTimeWarpType.FixedPlayRate:
                 writer.WritePropertyName("PlayRate");
-                writer.WriteValue(value.PlayRate);
+                writer.WriteNumberValue(value.PlayRate);
                 break;
             case EMovieSceneTimeWarpType.Custom:
                 writer.WritePropertyName("Custom");
-                serializer.Serialize(writer, value.Custom);
+                JsonSerializer.Serialize(writer, value.Custom, options);
                 break;
             default:
                 writer.WritePropertyName("Variant");
-                serializer.Serialize(writer, value.Variant);
+                JsonSerializer.Serialize(writer, value.Variant, options);
                 break;
         };
         writer.WriteEndObject();
     }
 
-    public override FMovieSceneTimeWarpVariant? ReadJson(JsonReader reader, Type objectType, FMovieSceneTimeWarpVariant? existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override FMovieSceneTimeWarpVariant Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }

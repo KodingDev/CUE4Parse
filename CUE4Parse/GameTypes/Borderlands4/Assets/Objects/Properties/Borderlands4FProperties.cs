@@ -1,8 +1,9 @@
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Objects.Properties;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.Borderlands4.Assets.Objects.Properties;
 
@@ -16,12 +17,12 @@ public class FGbxDefPtrProperty : FProperty
         Struct = new FPackageIndex(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName(nameof(Struct));
-        serializer.Serialize(writer, Struct);
+        JsonSerializer.Serialize(writer, Struct, options);
     }
 }
 
@@ -60,13 +61,12 @@ public class GbxDefPtrProperty : FPropertyTagType<FGbxDefPtr>
 
 public class GbxDefPtrPropertyConverter : JsonConverter<GbxDefPtrProperty>
 {
-    public override void WriteJson(JsonWriter writer, GbxDefPtrProperty value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, GbxDefPtrProperty value, JsonSerializerOptions options)
     {
-        serializer.Serialize(writer, value.Value);
+        JsonSerializer.Serialize(writer, value.Value, options);
     }
 
-    public override GbxDefPtrProperty ReadJson(JsonReader reader, Type objectType, GbxDefPtrProperty? existingValue, bool hasExistingValue,
-        JsonSerializer serializer)
+    public override GbxDefPtrProperty Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }
@@ -82,12 +82,12 @@ public class FGameDataHandleProperty : FProperty
         Flags = Ar.Read<ulong>();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName(nameof(Flags));
-        writer.WriteValue(Flags);
+        writer.WriteNumberValue(Flags);
     }
 }
 
@@ -126,13 +126,12 @@ public class GameDataHandleProperty : FPropertyTagType<FGameDataHandle>
 
 public class GameDataHandlePropertyConverter : JsonConverter<GameDataHandleProperty>
 {
-    public override void WriteJson(JsonWriter writer, GameDataHandleProperty value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, GameDataHandleProperty value, JsonSerializerOptions options)
     {
-        serializer.Serialize(writer, value.Value);
+        JsonSerializer.Serialize(writer, value.Value, options);
     }
 
-    public override GameDataHandleProperty ReadJson(JsonReader reader, Type objectType, GameDataHandleProperty? existingValue, bool hasExistingValue,
-        JsonSerializer serializer)
+    public override GameDataHandleProperty Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }

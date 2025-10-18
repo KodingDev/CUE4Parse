@@ -1,6 +1,6 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Wwise;
 
@@ -17,13 +17,13 @@ public class UAkAudioDeviceShareSet : UAkAudioType
         AudioDeviceShareSetCookedData = new FStructFallback(Ar, "WwiseAudioDeviceShareSetCookedData");
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (AudioDeviceShareSetCookedData is null) return;
 
         writer.WritePropertyName("AudioDeviceShareSetCookedData");
-        serializer.Serialize(writer, AudioDeviceShareSetCookedData);
+        JsonSerializer.Serialize(writer, AudioDeviceShareSetCookedData, options);
     }
 }

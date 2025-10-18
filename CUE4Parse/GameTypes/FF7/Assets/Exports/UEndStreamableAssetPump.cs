@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.GameTypes.FF7.Objects;
 using CUE4Parse.UE4.Assets.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.FF7.Assets.Exports;
 
@@ -28,13 +29,12 @@ public struct FF7StreamableAssetPumpKey(FMemoryMappedImageArchive Ar)
 
 public class FF7StreamableAssetPumpKeyConverter : JsonConverter<FF7StreamableAssetPumpKey>
 {
-    public override void WriteJson(JsonWriter writer, FF7StreamableAssetPumpKey value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FF7StreamableAssetPumpKey value, JsonSerializerOptions options)
     {
-        serializer.Serialize(writer, value.Index);
+        JsonSerializer.Serialize(writer, value.Index, options);
     }
 
-    public override FF7StreamableAssetPumpKey ReadJson(JsonReader reader, Type objectType, FF7StreamableAssetPumpKey existingValue, bool hasExistingValue,
-        JsonSerializer serializer)
+    public override FF7StreamableAssetPumpKey Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }
@@ -62,14 +62,14 @@ public class UEndStreamableAssetPump : UMemoryMappedAsset
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         foreach (var section in Sections)
         {
             writer.WritePropertyName(section.Index.ToString());
-            serializer.Serialize(writer, AssetMap[section]);
+            JsonSerializer.Serialize(writer, AssetMap[section], options);
         }
     }
 }

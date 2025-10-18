@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.UObject;
@@ -36,33 +37,33 @@ public class UPropertyValue : UObject
         }
     }
 
-    protected internal override void WriteJson(Newtonsoft.Json.JsonWriter writer, Newtonsoft.Json.JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (LeafPropertyClass is not null)
         {
             writer.WritePropertyName("LeafPropertyClass");
-            serializer.Serialize(writer, LeafPropertyClass);
+            JsonSerializer.Serialize(writer, LeafPropertyClass, options);
         }
 
         writer.WritePropertyName("TempObjPtr");
-        serializer.Serialize(writer, TempObjPtr);
+        JsonSerializer.Serialize(writer, TempObjPtr, options);
 
         if (TempName is not null)
         {
             writer.WritePropertyName("TempName");
-            serializer.Serialize(writer, TempName);
+            JsonSerializer.Serialize(writer, TempName, options);
         }
         if (TempStr is not null)
         {
             writer.WritePropertyName("TempStr");
-            serializer.Serialize(writer, TempStr);
+            JsonSerializer.Serialize(writer, TempStr, options);
         }
         if (TempText is not null)
         {
             writer.WritePropertyName("TempText");
-            serializer.Serialize(writer, TempText);
+            JsonSerializer.Serialize(writer, TempText, options);
         }
     }
 }

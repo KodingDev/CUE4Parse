@@ -1,11 +1,11 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.GameplayTags;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.OtherGames.Objects;
 
@@ -61,19 +61,19 @@ public class AffinityTable : UObject
         Tags = Ar.ReadMap(Ar.ReadFName, () => Ar.ReadMap(Ar.ReadFString, () => (Ar.ReadFName(), Ar.ReadFName())));
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName(nameof(StructNames));
-        serializer.Serialize(writer, StructNames);
+        JsonSerializer.Serialize(writer, StructNames, options);
         writer.WritePropertyName(nameof(Tables));
-        serializer.Serialize(writer, Tables);
+        JsonSerializer.Serialize(writer, Tables, options);
         writer.WritePropertyName(nameof(Rows));
-        serializer.Serialize(writer, Rows);
+        JsonSerializer.Serialize(writer, Rows, options);
         writer.WritePropertyName(nameof(Columns));
-        serializer.Serialize(writer, Columns);
+        JsonSerializer.Serialize(writer, Columns, options);
         writer.WritePropertyName(nameof(Tags));
-        serializer.Serialize(writer, Tags);
+        JsonSerializer.Serialize(writer, Tags, options);
 
     }
 }

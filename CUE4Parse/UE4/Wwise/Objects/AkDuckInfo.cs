@@ -1,7 +1,6 @@
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace CUE4Parse.UE4.Wwise.Objects;
 
@@ -11,7 +10,7 @@ public class AkDuckInfo
     public readonly float DuckVolume;
     public readonly uint FadeOutTime;
     public readonly uint FadeInTime;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public readonly ECurveInterpolation FadeCurve;
     public readonly byte TargetProp; // Version > 65
 

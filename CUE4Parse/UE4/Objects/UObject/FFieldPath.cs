@@ -1,6 +1,6 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.UObject;
 
@@ -49,42 +49,42 @@ public class FFieldPath
         return Path.Length == 0 ? string.Empty : Path[0].ToString();
     }
 
-    protected internal void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         if (ResolvedOwner is null)
         {
-            serializer.Serialize(writer, this);
+            JsonSerializer.Serialize(writer, this, options);
             return;
         }
 
         if (ResolvedOwner.IsNull)
         {
             //if (Path.Count > 0) Log.Warning("");
-            writer.WriteNull();
+            writer.WriteNullValue();
             return;
         }
 
         if (!ResolvedOwner.TryLoad<UField>(out var field))
         {
-            serializer.Serialize(writer, this);
+            JsonSerializer.Serialize(writer, this, options);
             return;
         }
 
         switch (field)
         {
             case UScriptClass:
-                serializer.Serialize(writer, this);
+                JsonSerializer.Serialize(writer, this, options);
                 break;
             case UStruct struc when Path.Length > 0 && struc.GetProperty(Path[0], out var prop):
                 writer.WriteStartObject();
                 writer.WritePropertyName("Owner");
-                serializer.Serialize(writer, ResolvedOwner);
+                JsonSerializer.Serialize(writer, ResolvedOwner, options);
                 writer.WritePropertyName("Property");
-                serializer.Serialize(writer, prop);
+                JsonSerializer.Serialize(writer, prop, options);
                 writer.WriteEndObject();
                 break;
             default:
-                serializer.Serialize(writer, this);
+                JsonSerializer.Serialize(writer, this, options);
                 break;
         }
     }

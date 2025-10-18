@@ -1,6 +1,6 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects
 {
@@ -22,25 +22,25 @@ namespace CUE4Parse.UE4.Wwise.Objects
             }
         }
 
-        public void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        public void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
 
             writer.WritePropertyName("OverrideParentEffects");
-            writer.WriteValue(OverrideParentEffects);
+            writer.WriteBooleanValue(OverrideParentEffects);
 
             writer.WritePropertyName("EffectCount");
-            writer.WriteValue(EffectCount);
+            writer.WriteNumberValue(EffectCount);
 
             if (EffectCount != 0)
             {
                 writer.WritePropertyName("BypassEffects");
-                writer.WriteValue(BypassEffects);
+                JsonSerializer.Serialize(writer, BypassEffects, options);
 
                 writer.WritePropertyName("EffectReferences");
                 writer.WriteStartArray();
                 foreach (EffectReference effect in EffectReferences)
-                    effect.WriteJson(writer, serializer);
+                    effect.WriteJson(writer, options);
                 writer.WriteEndArray();
             }
 

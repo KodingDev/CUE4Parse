@@ -1,11 +1,11 @@
-using CUE4Parse.UE4.Assets.Readers;
-using CUE4Parse.UE4.Exceptions;
 using System.Collections.Generic;
-using CUE4Parse.UE4.Assets.Objects.Properties;
-using Newtonsoft.Json;
-using CUE4Parse.UE4.Versions;
+using System.Text.Json.Serialization;
 using CUE4Parse.GameTypes.DaysGone.Assets;
 using CUE4Parse.GameTypes.SOD2.Assets;
+using CUE4Parse.UE4.Assets.Objects.Properties;
+using CUE4Parse.UE4.Assets.Readers;
+using CUE4Parse.UE4.Exceptions;
+using CUE4Parse.UE4.Versions;
 
 namespace CUE4Parse.UE4.Assets.Objects;
 

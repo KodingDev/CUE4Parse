@@ -1,9 +1,9 @@
 using System;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.Engine.Curves
 {
@@ -35,16 +35,16 @@ namespace CUE4Parse.UE4.Objects.Engine.Curves
             if (FloatCurves.Length > 0) Properties.Clear(); // Don't write these for this object
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("FloatCurves");
             writer.WriteStartArray();
 
             foreach (var richCurve in FloatCurves)
             {
-                serializer.Serialize(writer, richCurve);
+                JsonSerializer.Serialize(writer, richCurve, options);
             }
 
             writer.WriteEndArray();

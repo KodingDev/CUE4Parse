@@ -5,7 +5,8 @@ using CUE4Parse_Conversion.Textures;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 
 namespace CUE4Parse_Conversion.Materials
@@ -52,7 +53,7 @@ namespace CUE4Parse_Conversion.Materials
             savedFilePath = string.Empty;
 
             savedFilePath = FixAndCreatePath(baseDirectory, _internalFilePath, "json");
-            File.WriteAllTextAsync(savedFilePath, JsonConvert.SerializeObject(_materialData, Formatting.Indented));
+            File.WriteAllTextAsync(savedFilePath, JsonSerializer.Serialize(_materialData, new JsonSerializerOptions { WriteIndented = true }));
             label = Path.GetFileName(savedFilePath);
 
             Parallel.ForEach(_materialData.Parameters.Textures.Values, texture =>

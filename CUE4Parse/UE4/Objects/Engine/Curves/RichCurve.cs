@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Exports.Animation;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using static CUE4Parse.UE4.Objects.Engine.Curves.ERichCurveCompressionFormat;
 using static CUE4Parse.UE4.Objects.Engine.Curves.ERichCurveInterpMode;
 using static CUE4Parse.UE4.Objects.Engine.Curves.ERichCurveTangentMode;
@@ -82,13 +81,13 @@ public enum ERichCurveKeyTimeCompressionFormat : byte
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct FRichCurveKey : IUStruct
 {
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ERichCurveInterpMode InterpMode;
 
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ERichCurveTangentMode TangentMode;
 
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ERichCurveTangentWeightMode TangentWeightMode;
 
     public float Time;
@@ -128,16 +127,16 @@ public struct FRichCurveKey : IUStruct
 public class FCompressedRichCurve : IUStruct
 {
     /** Compression format used by CompressedKeys */
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ERichCurveCompressionFormat CompressionFormat;
     /** Compression format used to pack the key time */
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ERichCurveKeyTimeCompressionFormat KeyTimeCompressionFormat;
     /** Pre-infinity extrapolation state */
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ERichCurveExtrapolation PreInfinityExtrap;
     /** Post-infinity extrapolation state */
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ERichCurveExtrapolation PostInfinityExtrap;
     /**
     * If the compression format is constant, this is the value returned

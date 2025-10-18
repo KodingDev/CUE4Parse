@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports.Animation;
 using CUE4Parse.UE4.Assets.Exports.Nanite;
 using CUE4Parse.UE4.Assets.Exports.StaticMesh;
@@ -9,7 +10,6 @@ using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 
@@ -219,20 +219,20 @@ public partial class USkeletalMesh : UObject
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName(nameof(ImportedBounds));
-        serializer.Serialize(writer, ImportedBounds);
+        JsonSerializer.Serialize(writer, ImportedBounds, options);
 
         writer.WritePropertyName(nameof(SkeletalMaterials));
-        serializer.Serialize(writer, SkeletalMaterials);
+        JsonSerializer.Serialize(writer, SkeletalMaterials, options);
 
         writer.WritePropertyName(nameof(LODModels));
-        serializer.Serialize(writer, LODModels);
+        JsonSerializer.Serialize(writer, LODModels, options);
 
         writer.WritePropertyName(nameof(NaniteResources));
-        serializer.Serialize(writer, NaniteResources);
+        JsonSerializer.Serialize(writer, NaniteResources, options);
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace CUE4Parse.UE4.Versions;
 
@@ -255,21 +256,23 @@ public static class GameUtils
 
 public class EGameConverter : JsonConverter<EGame>
 {
-    public override void WriteJson(JsonWriter writer, EGame value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, EGame value, JsonSerializerOptions options)
     {
-        writer.WriteValue(value);
+        writer.WriteNumberValue((uint)value);
     }
 
-    public override EGame ReadJson(JsonReader reader, Type objectType, EGame existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override EGame Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (reader.TokenType == JsonToken.Integer)
+        if (reader.TokenType == JsonTokenType.Number)
         {
-            uint value = Convert.ToUInt32(reader.Value);
+            uint value = reader.GetUInt32();
             return value > 0xFFFFFFF ? (EGame) ((value >> 28) + 3 << 24 | ((value >> 4) & 0xFF) << 16 | value & 0xF) : (EGame) value;
         }
-        else if (reader is { TokenType: JsonToken.String, Value: string str })
+        else if (reader.TokenType == JsonTokenType.String)
         {
-            return Enum.Parse<EGame>(str);
+            var str = reader.GetString();
+            if (str != null)
+                return Enum.Parse<EGame>(str);
         }
 
         return EGame.GAME_UE4_LATEST;

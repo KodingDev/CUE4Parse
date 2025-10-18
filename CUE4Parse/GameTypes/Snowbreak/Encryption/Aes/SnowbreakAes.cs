@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using CUE4Parse.Encryption.Aes;
@@ -34,7 +35,7 @@ public static class SnowbreakAes
 
     private static FAesKey ConvertSnowbreakAes(string name, FAesKey key)
     {
-        var pakName = System.IO.Path.GetFileNameWithoutExtension(name).ToLower();
+        var pakName = Path.GetFileNameWithoutExtension(name).ToLower();
         var pakNameBytes = Encoding.ASCII.GetBytes(pakName);
         var md5Name = MD5.HashData(pakNameBytes);
 

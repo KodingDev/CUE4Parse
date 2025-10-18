@@ -1,10 +1,10 @@
+using System.Text.Json;
 using CUE4Parse.UE4;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.OtherGames.Objects;
 
@@ -18,11 +18,11 @@ public class UPMTimelineEvent : UObject
         Properties = new FStructFallback(Ar, "PMTimelineEventExecutionProperties");
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName(nameof(Properties));
-        serializer.Serialize(writer, Properties);
+        JsonSerializer.Serialize(writer, Properties, options);
     }
 }
 

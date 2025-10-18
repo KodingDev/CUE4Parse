@@ -1,10 +1,10 @@
 using System;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects.Properties;
 using CUE4Parse.UE4.Assets.Objects.Unversioned;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Assets.Objects;

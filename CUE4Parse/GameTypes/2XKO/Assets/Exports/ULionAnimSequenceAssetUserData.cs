@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
@@ -6,7 +7,6 @@ using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.UObject;
 using FixedMathSharp;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes._2XKO.Assets.Exports;
 
@@ -24,13 +24,13 @@ public class ULionAnimSequenceAssetUserData : UAssetUserData
         Vectors = Ar.ReadMap(Ar.Read<Fixed64>, () => (FVector)Ar.Read<Vector3d>());
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName(nameof(Data));
-        serializer.Serialize(writer, Data);
+        JsonSerializer.Serialize(writer, Data, options);
         writer.WritePropertyName(nameof(Vectors));
-        serializer.Serialize(writer, Vectors);
+        JsonSerializer.Serialize(writer, Vectors, options);
     }
 }
 

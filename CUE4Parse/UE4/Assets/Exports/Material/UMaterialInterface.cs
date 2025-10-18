@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
@@ -7,7 +8,6 @@ using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Material;
 
@@ -51,20 +51,20 @@ public class UMaterialInterface : UUnrealMaterial
         if (Ar.Game == EGame.GAME_HogwartsLegacy) Ar.Position +=20; // FSHAHash
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (LoadedMaterialResources is not null)
         {
             writer.WritePropertyName("LoadedMaterialResources");
-            serializer.Serialize(writer, LoadedMaterialResources);
+            JsonSerializer.Serialize(writer, LoadedMaterialResources, options);
         }
 
         if (CachedExpressionData is not null)
         {
             writer.WritePropertyName("CachedExpressionData");
-            serializer.Serialize(writer, CachedExpressionData);
+            JsonSerializer.Serialize(writer, CachedExpressionData, options);
         }
 
     }

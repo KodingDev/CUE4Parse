@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.PCG;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.PCG;
 
@@ -18,9 +18,9 @@ public class UPCGMetadata : UObject
         ParentKeys = Ar.ReadArray<long>();
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (Attributes?.Count > 0)
         {
@@ -29,7 +29,7 @@ public class UPCGMetadata : UObject
             foreach (var (key, value) in Attributes)
             {
                 writer.WritePropertyName(key.Text);
-                serializer.Serialize(writer, value);
+                JsonSerializer.Serialize(writer, value, options);
             }
             writer.WriteEndObject();
         }

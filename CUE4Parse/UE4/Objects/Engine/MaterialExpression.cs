@@ -1,4 +1,6 @@
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Assets.Utils;
@@ -6,7 +8,6 @@ using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.Engine;
 
@@ -40,13 +41,13 @@ public class FMaterialInput<T> : FExpressionInput where T : struct
         Constant = Ar.Read<T>();
     }
 
-    public override void WriteAdditionalProperties(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteAdditionalProperties(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WritePropertyName(nameof(UseConstant));
-        serializer.Serialize(writer, UseConstant);
+        JsonSerializer.Serialize(writer, UseConstant, options);
 
         writer.WritePropertyName(nameof(Constant));
-        serializer.Serialize(writer, Constant);
+        JsonSerializer.Serialize(writer, Constant, options);
     }
 }
 
@@ -132,43 +133,43 @@ public class FExpressionInput : IUStruct
         ExpressionName = Ar is { Game: < EGame.GAME_UE5_2, IsFilterEditorOnly: true } ? Ar.ReadFName() : (Expression ?? new FPackageIndex()).Name.SubstringAfterLast('/');
     }
 
-    public virtual void WriteAdditionalProperties(JsonWriter writer, JsonSerializer serializer) { }
+    public virtual void WriteAdditionalProperties(Utf8JsonWriter writer, JsonSerializerOptions options) { }
 }
 
 public class FExpressionInputConverter : JsonConverter<FExpressionInput>
 {
-    public override void WriteJson(JsonWriter writer, FExpressionInput value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FExpressionInput value, JsonSerializerOptions options)
     {
         if (value.FallbackStruct is not null)
         {
-            serializer.Serialize(writer, value.FallbackStruct);
+            JsonSerializer.Serialize(writer, value.FallbackStruct, options);
             return;
         }
 
         writer.WriteStartObject();
         writer.WritePropertyName(nameof(value.Expression));
-        serializer.Serialize(writer, value.Expression);
+        JsonSerializer.Serialize(writer, value.Expression, options);
         writer.WritePropertyName(nameof(value.OutputIndex));
-        serializer.Serialize(writer, value.OutputIndex);
+        JsonSerializer.Serialize(writer, value.OutputIndex, options);
         writer.WritePropertyName(nameof(value.InputName));
-        serializer.Serialize(writer, value.InputName);
+        JsonSerializer.Serialize(writer, value.InputName, options);
         writer.WritePropertyName(nameof(value.Mask));
-        serializer.Serialize(writer, value.Mask);
+        JsonSerializer.Serialize(writer, value.Mask, options);
         writer.WritePropertyName(nameof(value.MaskR));
-        serializer.Serialize(writer, value.MaskR);
+        JsonSerializer.Serialize(writer, value.MaskR, options);
         writer.WritePropertyName(nameof(value.MaskG));
-        serializer.Serialize(writer, value.MaskG);
+        JsonSerializer.Serialize(writer, value.MaskG, options);
         writer.WritePropertyName(nameof(value.MaskB));
-        serializer.Serialize(writer, value.MaskB);
+        JsonSerializer.Serialize(writer, value.MaskB, options);
         writer.WritePropertyName(nameof(value.MaskA));
-        serializer.Serialize(writer, value.MaskA);
+        JsonSerializer.Serialize(writer, value.MaskA, options);
         writer.WritePropertyName(nameof(value.ExpressionName));
-        serializer.Serialize(writer, value.ExpressionName);
-        value.WriteAdditionalProperties(writer, serializer);
+        JsonSerializer.Serialize(writer, value.ExpressionName, options);
+        value.WriteAdditionalProperties(writer, options);
         writer.WriteEndObject();
     }
 
-    public override FExpressionInput? ReadJson(JsonReader reader, Type objectType, FExpressionInput? existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override FExpressionInput Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }

@@ -1,10 +1,10 @@
 using System;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Assets.Exports.StaticMesh;
@@ -153,20 +153,20 @@ public class UStaticMesh : UObject
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("BodySetup");
-        serializer.Serialize(writer, BodySetup);
+        JsonSerializer.Serialize(writer, BodySetup, options);
 
         writer.WritePropertyName("NavCollision");
-        serializer.Serialize(writer, NavCollision);
+        JsonSerializer.Serialize(writer, NavCollision, options);
 
         writer.WritePropertyName("LightingGuid");
-        serializer.Serialize(writer, LightingGuid);
+        JsonSerializer.Serialize(writer, LightingGuid, options);
 
         writer.WritePropertyName("RenderData");
-        serializer.Serialize(writer, RenderData);
+        JsonSerializer.Serialize(writer, RenderData, options);
     }
 }

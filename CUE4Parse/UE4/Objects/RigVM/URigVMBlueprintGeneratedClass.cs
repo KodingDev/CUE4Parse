@@ -1,7 +1,7 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.RigVM;
 
@@ -25,20 +25,20 @@ public class URigVMBlueprintGeneratedClass : UBlueprintGeneratedClass
         base.Deserialize(Ar, validPos);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (VM != null)
         {
             writer.WritePropertyName(nameof(VM));
-            serializer.Serialize(writer, VM);
+            JsonSerializer.Serialize(writer, VM, options);
         }
 
         if (GraphFunctionStore != null)
         {
             writer.WritePropertyName(nameof(GraphFunctionStore));
-            serializer.Serialize(writer, GraphFunctionStore);
+            JsonSerializer.Serialize(writer, GraphFunctionStore, options);
         }
 
     }

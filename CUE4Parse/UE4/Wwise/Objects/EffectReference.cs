@@ -1,5 +1,5 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects;
 
@@ -16,18 +16,18 @@ public class EffectReference
         Unknown = Ar.Read<ushort>();
     }
 
-    public void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName("EffectIndex");
-        writer.WriteValue(EffectIndex);
+        writer.WriteNumberValue(EffectIndex);
 
         writer.WritePropertyName("EffectId");
-        writer.WriteValue(EffectId);
+        writer.WriteNumberValue(EffectId);
 
         // writer.WritePropertyName("Unknown");
-        // writer.WriteValue(Unknown);
+        // writer.WriteNumberValue(Unknown);
 
         writer.WriteEndObject();
     }

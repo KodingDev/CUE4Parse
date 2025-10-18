@@ -1,10 +1,10 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.GameTypes.Borderlands4.Assets.Objects.Properties;
 using CUE4Parse.UE4.Assets.Exports;
-using CUE4Parse.UE4.Assets.Objects.Properties;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.UObject;
 
@@ -20,18 +20,18 @@ public class FField
         Flags = Ar.Read<EObjectFlags>();
     }
 
-    protected internal virtual void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal virtual void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WritePropertyName("Type");
-        serializer.Serialize(writer, GetType().Name[1..]);
+        JsonSerializer.Serialize(writer, GetType().Name[1..]);
 
         writer.WritePropertyName("Name");
-        serializer.Serialize(writer, Name);
+        JsonSerializer.Serialize(writer, Name, options);
 
         if (Flags != 0)
         {
             writer.WritePropertyName("Flags");
-            writer.WriteValue(Flags.ToStringBitfield());
+            writer.WriteStringValue(Flags.ToStringBitfield());
         }
     }
 

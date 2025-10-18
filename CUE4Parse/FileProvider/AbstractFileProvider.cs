@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +24,6 @@ using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.UE4.VirtualFileSystem;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 using Serilog;
 using UE4Config.Parsing;
 
@@ -386,7 +386,7 @@ namespace CUE4Parse.FileProvider
                     if (!filePath.EndsWith(".uplugin")) continue;
                     if (!TryCreateReader(gameFile.Path, out var stream)) continue;
                     using var reader = new StreamReader(stream);
-                    var pluginFile = JsonConvert.DeserializeObject<UPluginDescriptor>(reader.ReadToEnd());
+                    var pluginFile = JsonSerializer.Deserialize<UPluginDescriptor>(reader.ReadToEnd());
                     if (!pluginFile!.CanContainContent) continue;
 
                     var virtPath = gameFile.NameWithoutExtension;
@@ -398,7 +398,7 @@ namespace CUE4Parse.FileProvider
                     if (!regex.IsMatch(filePath)) continue;
                     if (!TryCreateReader(gameFile.Path, out var stream)) continue;
                     using var reader = new StreamReader(stream);
-                    var manifest = JsonConvert.DeserializeObject<UPluginManifest>(reader.ReadToEnd());
+                    var manifest = JsonSerializer.Deserialize<UPluginManifest>(reader.ReadToEnd());
 
                     foreach (var content in manifest!.Contents)
                     {

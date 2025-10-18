@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -146,12 +146,12 @@ public class BaseHierarchyBus : AbstractHierarchy
         }
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WritePropertyName("OverrideBusId");
-        writer.WriteValue(OverrideBusId);
+        writer.WriteNumberValue(OverrideBusId);
         writer.WritePropertyName("DeviceSharesetId");
-        writer.WriteValue(DeviceSharesetId);
+        writer.WriteNumberValue(DeviceSharesetId);
 
         writer.WritePropertyName("Props");
         writer.WriteStartArray();
@@ -159,9 +159,9 @@ public class BaseHierarchyBus : AbstractHierarchy
         {
             writer.WriteStartObject();
             writer.WritePropertyName("Id");
-            writer.WriteValue(p.Id);
+            writer.WriteNumberValue(p.Id);
             writer.WritePropertyName("Value");
-            writer.WriteValue(p.Value);
+            writer.WriteNumberValue(p.Value);
             writer.WriteEndObject();
         }
         writer.WriteEndArray();
@@ -169,70 +169,70 @@ public class BaseHierarchyBus : AbstractHierarchy
         if (PositioningParams != null)
         {
             writer.WritePropertyName("PositioningParams");
-            serializer.Serialize(writer, PositioningParams);
+            JsonSerializer.Serialize(writer, PositioningParams, options);
         }
 
         if (AuxParams != null)
         {
             writer.WritePropertyName("AuxParams");
-            serializer.Serialize(writer, AuxParams);
+            JsonSerializer.Serialize(writer, AuxParams, options);
         }
 
         if (AdvSettingsParams.HasValue)
         {
             writer.WritePropertyName("AdvSettingsParams");
-            writer.WriteValue(AdvSettingsParams.Value.ToString());
+            writer.WriteStringValue(AdvSettingsParams.Value.ToString());
         }
 
         if (MaxNumInstance.HasValue)
         {
             writer.WritePropertyName("MaxNumInstance");
-            writer.WriteValue(MaxNumInstance.Value);
+            writer.WriteNumberValue(MaxNumInstance.Value);
         }
 
         if (ChannelConfig.HasValue)
         {
             writer.WritePropertyName("ChannelConfig");
-            writer.WriteValue(ChannelConfig.Value);
+            writer.WriteNumberValue(ChannelConfig.Value);
         }
 
         if (HdrEnvelopeFlags.HasValue)
         {
             writer.WritePropertyName("HdrEnvelopeFlags");
-            writer.WriteValue(HdrEnvelopeFlags.Value);
+            writer.WriteNumberValue(HdrEnvelopeFlags.Value);
         }
 
         writer.WritePropertyName("RecoveryTime");
-        writer.WriteValue(RecoveryTime);
+        writer.WriteNumberValue(RecoveryTime);
 
         writer.WritePropertyName("DuckInfo");
         writer.WriteStartArray();
         foreach (var d in DuckInfo)
-            serializer.Serialize(writer, d);
+            JsonSerializer.Serialize(writer, d, options);
         writer.WriteEndArray();
 
         writer.WritePropertyName("FxBusParams");
-        serializer.Serialize(writer, FxBusParams);
+        JsonSerializer.Serialize(writer, FxBusParams, options);
 
         writer.WritePropertyName("OverrideAttachmentParams");
-        writer.WriteValue(OverrideAttachmentParams);
+        writer.WriteNumberValue(OverrideAttachmentParams);
 
         writer.WritePropertyName("FxChunk");
         writer.WriteStartArray();
         foreach (var f in FxChunk)
-            serializer.Serialize(writer, f);
+            JsonSerializer.Serialize(writer, f, options);
         writer.WriteEndArray();
 
         writer.WritePropertyName("RtpcList");
         writer.WriteStartArray();
         foreach (var r in RtpcList)
-            serializer.Serialize(writer, r);
+            JsonSerializer.Serialize(writer, r, options);
         writer.WriteEndArray();
 
         if (StateGroups != null)
         {
             writer.WritePropertyName("StateGroups");
-            serializer.Serialize(writer, StateGroups);
+            JsonSerializer.Serialize(writer, StateGroups, options);
         }
     }
 }

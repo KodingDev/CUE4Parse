@@ -1,6 +1,5 @@
 ﻿using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Readers;
-using CUE4Parse.Utils;
 
 namespace CUE4Parse.UE4.Assets.Exports.ComputerFramework.Shader;
 

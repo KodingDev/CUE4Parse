@@ -5,9 +5,9 @@ using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.UObject
 {
@@ -33,7 +33,7 @@ namespace CUE4Parse.UE4.Objects.UObject
                     using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("CUE4Parse.Resources.PUBGNameHashMap.json");
                     if (stream == null) throw new MissingManifestResourceException("Couldn't find PUBGNameHashMap.json in Embedded Resources");
                     using StreamReader reader = new(stream);
-                    _pubgNameMap = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd()) ?? new Dictionary<string, string>();
+                    _pubgNameMap = JsonSerializer.Deserialize<Dictionary<string, string>>(reader.ReadToEnd()) ?? new Dictionary<string, string>();
                 }
 
                 if (Name != null && _pubgNameMap.TryGetValue(Name, out var name)) Name = name;

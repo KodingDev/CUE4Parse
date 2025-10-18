@@ -1,5 +1,5 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects;
 
@@ -18,15 +18,15 @@ public class AkGameSync
         GroupType = Ar.Read<byte>();
     }
 
-    public void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName("GroupId");
-        writer.WriteValue(GroupId);
+        writer.WriteNumberValue(GroupId);
 
         writer.WritePropertyName("GroupType");
-        writer.WriteValue(GroupType);
+        writer.WriteNumberValue(GroupType);
 
         writer.WriteEndObject();
     }

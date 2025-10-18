@@ -1,5 +1,4 @@
 ﻿using System.IO;
-
 using CUE4Parse.Compression;
 using CUE4Parse.UE4.Versions;
 

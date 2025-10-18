@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -19,20 +19,20 @@ public class HierarchyMusicSegment : BaseHierarchyMusic
         Markers = AkMusicMarkerWwise.ReadMultiple(Ar);
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("MeterInfo");
-        serializer.Serialize(writer, MeterInfo);
+        JsonSerializer.Serialize(writer, MeterInfo, options);
 
         writer.WritePropertyName("Duration");
-        writer.WriteValue(Duration);
+        writer.WriteNumberValue(Duration);
 
         writer.WritePropertyName("Markers");
-        serializer.Serialize(writer, Markers);
+        JsonSerializer.Serialize(writer, Markers, options);
 
         writer.WriteEndObject();
     }

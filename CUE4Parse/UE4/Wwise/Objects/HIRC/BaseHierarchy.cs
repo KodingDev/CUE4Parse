@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -105,81 +105,81 @@ public class BaseHierarchy : AbstractHierarchy
     }
 
     // WriteStartEndObjects are handled by derived classes!
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WritePropertyName("OverrideFx");
-        writer.WriteValue(OverrideFx);
+        writer.WriteBooleanValue(OverrideFx);
 
         writer.WritePropertyName("FxParams");
-        serializer.Serialize(writer, FxParams);
+        JsonSerializer.Serialize(writer, FxParams, options);
 
         writer.WritePropertyName("OverrideParentMetadataFlag");
-        writer.WriteValue(OverrideParentMetadataFlag != 0);
+        writer.WriteBooleanValue(OverrideParentMetadataFlag != 0);
 
         writer.WritePropertyName("NumFxMetadataFlag");
-        writer.WriteValue(NumFxMetadataFlag);
+        writer.WriteNumberValue(NumFxMetadataFlag);
 
         writer.WritePropertyName("OverrideAttachmentParams");
-        writer.WriteValue(OverrideAttachmentParams);
+        writer.WriteBooleanValue(OverrideAttachmentParams != 0);
 
         if (OverrideBusId != 0)
         {
             writer.WritePropertyName("OverrideBusId");
-            writer.WriteValue(OverrideBusId);
+            writer.WriteNumberValue(OverrideBusId);
         }
 
         if (DirectParentId != 0)
         {
             writer.WritePropertyName("DirectParentId");
-            writer.WriteValue(DirectParentId);
+            writer.WriteNumberValue(DirectParentId);
         }
 
         writer.WritePropertyName("Priority");
-        writer.WriteValue(Priority != 0);
+        writer.WriteBooleanValue(Priority != 0);
 
         writer.WritePropertyName("PriorityOverrideParent");
-        writer.WriteValue(PriorityOverrideParent != 0);
+        writer.WriteBooleanValue(PriorityOverrideParent != 0);
 
         writer.WritePropertyName("PriorityApplyDistFactor");
-        writer.WriteValue(PriorityApplyDistFactor != 0);
+        writer.WriteBooleanValue(PriorityApplyDistFactor != 0);
 
         writer.WritePropertyName("DistOffset");
-        writer.WriteValue(DistOffset);
+        writer.WriteNumberValue(DistOffset);
 
         writer.WritePropertyName("MidiBehaviorFlags");
-        writer.WriteValue(MidiBehaviorFlags.ToString());
+        writer.WriteStringValue(MidiBehaviorFlags.ToString());
 
         writer.WritePropertyName("Props");
-        serializer.Serialize(writer, Props);
+        JsonSerializer.Serialize(writer, Props, options);
 
         writer.WritePropertyName("PropRanges");
-        serializer.Serialize(writer, PropRanges);
+        JsonSerializer.Serialize(writer, PropRanges, options);
 
         writer.WritePropertyName("PositioningParams");
-        serializer.Serialize(writer, PositioningParams);
+        JsonSerializer.Serialize(writer, PositioningParams, options);
 
         writer.WritePropertyName("AuxParams");
-        serializer.Serialize(writer, AuxParams);
+        JsonSerializer.Serialize(writer, AuxParams, options);
 
         writer.WritePropertyName("AdvSettingsParams");
-        writer.WriteValue(AdvSettingsParams.ToString());
+        writer.WriteStringValue(AdvSettingsParams.ToString());
 
         writer.WritePropertyName("VirtualQueueBehavior");
-        writer.WriteValue(VirtualQueueBehavior.ToString());
+        writer.WriteStringValue(VirtualQueueBehavior.ToString());
 
         writer.WritePropertyName("MaxNumInstance");
-        writer.WriteValue(MaxNumInstance);
+        writer.WriteNumberValue(MaxNumInstance);
 
         writer.WritePropertyName("BelowThresholdBehavior");
-        writer.WriteValue(BelowThresholdBehavior.ToString());
+        writer.WriteStringValue(BelowThresholdBehavior.ToString());
 
         writer.WritePropertyName("HdrEnvelopeFlags");
-        writer.WriteValue(HdrEnvelopeFlags.ToString());
+        writer.WriteStringValue(HdrEnvelopeFlags.ToString());
 
         writer.WritePropertyName("StateGroups");
-        serializer.Serialize(writer, StateGroups);
+        JsonSerializer.Serialize(writer, StateGroups, options);
 
         writer.WritePropertyName("RtpcList");
-        serializer.Serialize(writer, RtpcList);
+        JsonSerializer.Serialize(writer, RtpcList, options);
     }
 }

@@ -1,15 +1,14 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 using Serilog;
-using Newtonsoft.Json.Converters;
 
 namespace CUE4Parse.UE4.Assets.Exports.Nanite;
 
@@ -39,7 +38,7 @@ public class FNaniteResources
     public ushort NumInputTexCoords = 0;
     /// <summary>The number of clusters in total for this mesh.</summary>
     public uint NumClusters = 0;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public NaniteConstants.NANITE_RESOURCE_FLAG ResourceFlags = 0;
 
     [JsonIgnore] public FNaniteStreamableData?[] LoadedPages = [];

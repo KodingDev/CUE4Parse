@@ -1,7 +1,7 @@
 using System.Linq;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -43,19 +43,19 @@ public class HierarchySettings : AbstractHierarchy
         }
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         // writer.WritePropertyName("SettingsCount");
-        // writer.WriteValue(SettingsCount);
+        // writer.WriteNumberValue(SettingsCount);
 
         // if (SettingsCount != 0)
         {
             writer.WritePropertyName("Settings");
             writer.WriteStartObject();
             foreach (Setting<EHierarchyParameterType> setting in Settings)
-                setting.WriteJson(writer, serializer);
+                setting.WriteJson(writer, options);
             writer.WriteEndObject();
         }
 

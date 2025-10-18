@@ -1,7 +1,7 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.UObject
 {
@@ -52,9 +52,9 @@ namespace CUE4Parse.UE4.Objects.UObject
             }
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("Names");
             writer.WriteStartObject();
@@ -62,13 +62,13 @@ namespace CUE4Parse.UE4.Objects.UObject
                 foreach (var (name, enumValue) in Names)
                 {
                     writer.WritePropertyName(name.Text);
-                    writer.WriteValue(enumValue);
+                    writer.WriteNumberValue(enumValue);
                 }
             }
             writer.WriteEndObject();
 
             writer.WritePropertyName("CppForm");
-            writer.WriteValue(CppForm.ToString());
+            writer.WriteStringValue(CppForm.ToString());
         }
 
         public enum ECppForm : byte

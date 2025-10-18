@@ -1,8 +1,8 @@
-﻿using CUE4Parse.UE4.Exceptions;
+﻿using System.Text.Json.Serialization;
+using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Localization

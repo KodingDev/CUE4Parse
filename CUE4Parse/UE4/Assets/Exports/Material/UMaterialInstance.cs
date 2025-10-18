@@ -1,11 +1,11 @@
 using System;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports.Material.Parameters;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Assets.Utils;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Material;
 
@@ -79,21 +79,21 @@ public class UMaterialInstance : UMaterialInterface
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (CachedData != null)
         {
             writer.WritePropertyName("CachedData");
-            serializer.Serialize(writer, CachedData);
+            JsonSerializer.Serialize(writer, CachedData, options);
         }
 
         //fix StaticParameters not showing in the json on versions such as 4.16
         if (StaticParameters != null && bHasNonUPropertyStaticParameters)
         {
             writer.WritePropertyName("StaticParameters");
-            serializer.Serialize(writer, StaticParameters);
+            JsonSerializer.Serialize(writer, StaticParameters, options);
         }
     }
 }

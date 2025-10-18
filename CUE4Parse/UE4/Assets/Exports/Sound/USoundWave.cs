@@ -1,9 +1,9 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Sound;
 
@@ -80,27 +80,27 @@ public class USoundWave : USoundBase
         RunningPlatformData = new FStreamedAudioPlatformData(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (PlatformCuePoints is not null)
         {
             writer.WritePropertyName("PlatformCuePoints");
-            serializer.Serialize(writer, PlatformCuePoints);
+            JsonSerializer.Serialize(writer, PlatformCuePoints, options);
         }
 
         writer.WritePropertyName("CompressedFormatData");
-        serializer.Serialize(writer, CompressedFormatData);
+        JsonSerializer.Serialize(writer, CompressedFormatData, options);
 
         writer.WritePropertyName("RawData");
-        serializer.Serialize(writer, RawData);
+        JsonSerializer.Serialize(writer, RawData, options);
 
         writer.WritePropertyName("CompressedDataGuid");
-        serializer.Serialize(writer, CompressedDataGuid);
+        JsonSerializer.Serialize(writer, CompressedDataGuid, options);
 
         writer.WritePropertyName("RunningPlatformData");
-        serializer.Serialize(writer, RunningPlatformData);
+        JsonSerializer.Serialize(writer, RunningPlatformData, options);
     }
 
     protected void SoundBaseDeserialize(FAssetArchive Ar, long validPos)

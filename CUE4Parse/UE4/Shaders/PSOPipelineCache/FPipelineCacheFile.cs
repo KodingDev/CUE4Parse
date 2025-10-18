@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Shaders;
 
@@ -97,22 +98,21 @@ public enum PSOOrder : uint
 
 public class FPipelineCacheFileConverter : JsonConverter<FPipelineCacheFile>
 {
-    public override void WriteJson(JsonWriter writer, FPipelineCacheFile value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FPipelineCacheFile value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName(nameof(value.Header));
-        serializer.Serialize(writer, value.Header);
+        JsonSerializer.Serialize(writer, value.Header, options);
         writer.WritePropertyName(nameof(value.TOC));
-        serializer.Serialize(writer, value.TOC);
+        JsonSerializer.Serialize(writer, value.TOC, options);
 
         //writer.WritePropertyName(nameof(value.PSOs));
-        //serializer.Serialize(writer, value.PSOs);
+        //JsonSerializer.Serialize(writer, value.PSOs, options);
 
         writer.WriteEndObject();
     }
 
-    public override FPipelineCacheFile ReadJson(JsonReader reader, Type objectType, FPipelineCacheFile existingValue, bool hasExistingValue,
-        JsonSerializer serializer)
+    public override FPipelineCacheFile Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => throw new NotImplementedException();
 }

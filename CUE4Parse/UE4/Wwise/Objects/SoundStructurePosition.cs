@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects
 {
@@ -49,53 +44,79 @@ namespace CUE4Parse.UE4.Wwise.Objects
             }
         }
 
-        public void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        public void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
 
             writer.WritePropertyName("PositionIncluded");
-            writer.WriteValue(PositionIncluded);
+            writer.WriteBooleanValue(PositionIncluded);
 
             if (PositionIncluded)
             {
                 writer.WritePropertyName("PositionDimension");
-                writer.WriteValue(PositionDimension);
+                JsonSerializer.Serialize(writer, PositionDimension, options);
 
                 if (PositionDimension == EPositionDimensionType.TwoD)
                 {
-                    writer.WritePropertyName("Position2DPanner");
-                    writer.WriteValue(Position2DPanner);
+                    if (Position2DPanner.HasValue)
+                    {
+                        writer.WritePropertyName("Position2DPanner");
+                        writer.WriteBooleanValue(Position2DPanner.Value);
+                    }
                 }
                 else if (PositionDimension == EPositionDimensionType.ThreeD)
                 {
-                    writer.WritePropertyName("Position3DSource");
-                    writer.WriteValue(Position3DSource);
+                    if (Position3DSource.HasValue)
+                    {
+                        writer.WritePropertyName("Position3DSource");
+                        JsonSerializer.Serialize(writer, Position3DSource.Value, options);
+                    }
 
-                    writer.WritePropertyName("Position3DAttenuationId");
-                    writer.WriteValue(Position3DAttenuationId);
+                    if (Position3DAttenuationId.HasValue)
+                    {
+                        writer.WritePropertyName("Position3DAttenuationId");
+                        writer.WriteNumberValue(Position3DAttenuationId.Value);
+                    }
 
-                    writer.WritePropertyName("Position3DSpatialization");
-                    writer.WriteValue(Position3DSpatialization);
+                    if (Position3DSpatialization.HasValue)
+                    {
+                        writer.WritePropertyName("Position3DSpatialization");
+                        writer.WriteBooleanValue(Position3DSpatialization.Value);
+                    }
 
                     if (Position3DSource == EPosition3DSource.UserDefined)
                     {
-                        writer.WritePropertyName("Position3DPlayType");
-                        writer.WriteValue(Position3DPlayType);
+                        if (Position3DPlayType.HasValue)
+                        {
+                            writer.WritePropertyName("Position3DPlayType");
+                            JsonSerializer.Serialize(writer, Position3DPlayType.Value, options);
+                        }
 
-                        writer.WritePropertyName("Position3DLoop");
-                        writer.WriteValue(Position3DLoop);
+                        if (Position3DLoop.HasValue)
+                        {
+                            writer.WritePropertyName("Position3DLoop");
+                            writer.WriteBooleanValue(Position3DLoop.Value);
+                        }
 
-                        writer.WritePropertyName("Position3DTransitionTime");
-                        writer.WriteValue(Position3DTransitionTime);
+                        if (Position3DTransitionTime.HasValue)
+                        {
+                            writer.WritePropertyName("Position3DTransitionTime");
+                            writer.WriteNumberValue(Position3DTransitionTime.Value);
+                        }
 
-                        writer.WritePropertyName("Position3DFollowListenerOrientation");
-                        writer.WriteValue(Position3DFollowListenerOrientation);
-
+                        if (Position3DFollowListenerOrientation.HasValue)
+                        {
+                            writer.WritePropertyName("Position3DFollowListenerOrientation");
+                            writer.WriteBooleanValue(Position3DFollowListenerOrientation.Value);
+                        }
                     }
                     else if (Position3DSource == EPosition3DSource.GameDefined)
                     {
-                        writer.WritePropertyName("Position3DUpdatePerFrame");
-                        writer.WriteValue(Position3DUpdatePerFrame);
+                        if (Position3DUpdatePerFrame.HasValue)
+                        {
+                            writer.WritePropertyName("Position3DUpdatePerFrame");
+                            writer.WriteBooleanValue(Position3DUpdatePerFrame.Value);
+                        }
                     }
                 }
             }

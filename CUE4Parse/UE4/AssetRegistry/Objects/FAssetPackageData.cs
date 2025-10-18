@@ -1,9 +1,9 @@
-﻿using CUE4Parse.UE4.AssetRegistry.Readers;
+﻿using System.Text.Json.Serialization;
+using CUE4Parse.UE4.AssetRegistry.Readers;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.Core.Serialization;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.AssetRegistry.Objects
 {

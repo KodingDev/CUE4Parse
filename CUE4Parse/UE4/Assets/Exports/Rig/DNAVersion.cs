@@ -1,5 +1,5 @@
-﻿using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
+using CUE4Parse.UE4.Readers;
 
 namespace CUE4Parse.UE4.Assets.Exports.Rig;
 

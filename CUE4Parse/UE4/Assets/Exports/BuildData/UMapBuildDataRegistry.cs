@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.Math;
@@ -8,7 +10,6 @@ using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.BuildData;
 
@@ -67,44 +68,44 @@ public class UMapBuildDataRegistry : UObject
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (MeshBuildData?.Count > 0)
         {
             writer.WritePropertyName("MeshBuildData");
-            serializer.Serialize(writer, MeshBuildData);
+            JsonSerializer.Serialize(writer, MeshBuildData, options);
         }
 
         if (LevelPrecomputedLightVolumeBuildData?.Count > 0)
         {
             writer.WritePropertyName("LevelPrecomputedLightVolumeBuildData");
-            serializer.Serialize(writer, LevelPrecomputedLightVolumeBuildData);
+            JsonSerializer.Serialize(writer, LevelPrecomputedLightVolumeBuildData, options);
         }
 
         if (LevelPrecomputedVolumetricLightmapBuildData?.Count > 0)
         {
             writer.WritePropertyName("LevelPrecomputedVolumetricLightmapBuildData");
-            serializer.Serialize(writer, LevelPrecomputedVolumetricLightmapBuildData);
+            JsonSerializer.Serialize(writer, LevelPrecomputedVolumetricLightmapBuildData, options);
         }
 
         if (LightBuildData?.Count > 0)
         {
             writer.WritePropertyName("LightBuildData");
-            serializer.Serialize(writer, LightBuildData);
+            JsonSerializer.Serialize(writer, LightBuildData, options);
         }
 
         if (ReflectionCaptureBuildData?.Count > 0)
         {
             writer.WritePropertyName("ReflectionCaptureBuildData");
-            serializer.Serialize(writer, ReflectionCaptureBuildData);
+            JsonSerializer.Serialize(writer, ReflectionCaptureBuildData, options);
         }
 
         if (SkyAtmosphereBuildData?.Count > 0)
         {
             writer.WritePropertyName("SkyAtmosphereBuildData");
-            serializer.Serialize(writer, SkyAtmosphereBuildData);
+            JsonSerializer.Serialize(writer, SkyAtmosphereBuildData, options);
         }
     }
 }

@@ -1,5 +1,5 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Wwise;
 
@@ -19,16 +19,16 @@ public class UAkMediaAssetData : UObject
         DataChunks = Ar.ReadArray(() => new FAkMediaDataChunk(Ar));
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("DataChunks");
         writer.WriteStartArray();
         {
             foreach (var dataChunk in DataChunks)
             {
-                serializer.Serialize(writer, dataChunk);
+                JsonSerializer.Serialize(writer, dataChunk, options);
             }
         }
         writer.WriteEndArray();

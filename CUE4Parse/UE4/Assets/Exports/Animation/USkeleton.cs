@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Assets.Utils;
@@ -7,7 +8,6 @@ using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Assets.Exports.Animation
@@ -91,24 +91,24 @@ namespace CUE4Parse.UE4.Assets.Exports.Animation
             }
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("ReferenceSkeleton");
-            serializer.Serialize(writer, ReferenceSkeleton);
+            JsonSerializer.Serialize(writer, ReferenceSkeleton, options);
 
             writer.WritePropertyName("Guid");
-            serializer.Serialize(writer, Guid);
+            JsonSerializer.Serialize(writer, Guid, options);
 
             writer.WritePropertyName("AnimRetargetSources");
-            serializer.Serialize(writer, AnimRetargetSources);
+            JsonSerializer.Serialize(writer, AnimRetargetSources, options);
 
             writer.WritePropertyName("NameMappings");
-            serializer.Serialize(writer, NameMappings);
+            JsonSerializer.Serialize(writer, NameMappings, options);
 
             writer.WritePropertyName("ExistingMarkerNames");
-            serializer.Serialize(writer, ExistingMarkerNames);
+            JsonSerializer.Serialize(writer, ExistingMarkerNames, options);
         }
     }
 }

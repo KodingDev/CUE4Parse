@@ -1,14 +1,13 @@
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace CUE4Parse.UE4.Wwise.Objects;
 
 public class AkTransParams
 {
     public readonly AkFadeParams SourceFadeParams;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public readonly ESyncType SyncType;
     public readonly uint CueFilterHash;
     public readonly AkFadeParams DestinationFadeParams;
@@ -24,7 +23,7 @@ public class AkTransParams
     public class AkFadeParams
     {
         public readonly uint TransitionTime;
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public readonly ECurveInterpolation FadeCurve;
         public readonly uint FadeOffset;
 

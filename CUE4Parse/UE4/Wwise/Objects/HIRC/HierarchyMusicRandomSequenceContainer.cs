@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -26,23 +26,23 @@ public class HierarchyMusicRandomSequenceContainer : BaseHierarchyMusic
         }
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("MeterInfo");
-        serializer.Serialize(writer, MeterInfo);
+        JsonSerializer.Serialize(writer, MeterInfo, options);
 
         writer.WritePropertyName("Stingers");
-        serializer.Serialize(writer, Stingers);
+        JsonSerializer.Serialize(writer, Stingers, options);
 
         writer.WritePropertyName("MusicTransitionRule");
-        serializer.Serialize(writer, MusicTransitionRule.Rules);
+        JsonSerializer.Serialize(writer, MusicTransitionRule.Rules, options);
 
         writer.WritePropertyName("Playlist");
-        serializer.Serialize(writer, Playlist);
+        JsonSerializer.Serialize(writer, Playlist, options);
 
         writer.WriteEndObject();
     }

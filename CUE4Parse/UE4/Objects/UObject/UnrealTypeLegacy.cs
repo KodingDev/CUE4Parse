@@ -1,7 +1,7 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.UObject
 {
@@ -24,32 +24,32 @@ namespace CUE4Parse.UE4.Objects.UObject
             }
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             if (ArrayDim != 1)
             {
                 writer.WritePropertyName("ArrayDim");
-                writer.WriteValue(ArrayDim);
+                writer.WriteNumberValue(ArrayDim);
             }
 
             if (PropertyFlags != 0)
             {
                 writer.WritePropertyName("PropertyFlags");
-                writer.WriteValue(PropertyFlags.ToStringBitfield());
+                writer.WriteStringValue(PropertyFlags.ToStringBitfield());
             }
 
             if (!RepNotifyFunc.IsNone)
             {
                 writer.WritePropertyName("RepNotifyFunc");
-                serializer.Serialize(writer, RepNotifyFunc);
+                JsonSerializer.Serialize(writer, RepNotifyFunc, options);
             }
 
             if (BlueprintReplicationCondition != ELifetimeCondition.COND_None)
             {
                 writer.WritePropertyName("BlueprintReplicationCondition");
-                writer.WriteValue(BlueprintReplicationCondition.ToString());
+                writer.WriteStringValue(BlueprintReplicationCondition.ToString());
             }
         }
     }
@@ -66,12 +66,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             Enum = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("Enum");
-            serializer.Serialize(writer, Enum);
+            JsonSerializer.Serialize(writer, Enum, options);
         }
     }
 
@@ -101,15 +101,15 @@ namespace CUE4Parse.UE4.Objects.UObject
             bIsNativeBool = Ar.ReadFlag();
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("BoolSize");
-            writer.WriteValue(BoolSize);
+            writer.WriteNumberValue(BoolSize);
 
             writer.WritePropertyName("bIsNativeBool");
-            writer.WriteValue(bIsNativeBool);
+            writer.WriteBooleanValue(bIsNativeBool);
         }
     }
 
@@ -123,12 +123,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             PropertyClass = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("PropertyClass");
-            serializer.Serialize(writer, PropertyClass);
+            JsonSerializer.Serialize(writer, PropertyClass, options);
         }
     }
 
@@ -152,12 +152,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             MetaClass = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("MetaClass");
-            serializer.Serialize(writer, MetaClass);
+            JsonSerializer.Serialize(writer, MetaClass, options);
         }
     }
 
@@ -171,12 +171,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             MetaClass = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("MetaClass");
-            serializer.Serialize(writer, MetaClass);
+            JsonSerializer.Serialize(writer, MetaClass, options);
         }
     }
 
@@ -190,12 +190,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             MetaClass = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("MetaClass");
-            serializer.Serialize(writer, MetaClass);
+            JsonSerializer.Serialize(writer, MetaClass, options);
         }
     }
 
@@ -209,12 +209,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             InterfaceClass = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("InterfaceClass");
-            serializer.Serialize(writer, InterfaceClass);
+            JsonSerializer.Serialize(writer, InterfaceClass, options);
         }
     }
 
@@ -232,12 +232,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             Inner = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("Inner");
-            serializer.Serialize(writer, Inner);
+            JsonSerializer.Serialize(writer, Inner, options);
         }
     }
 
@@ -253,15 +253,15 @@ namespace CUE4Parse.UE4.Objects.UObject
             ValueProp = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("KeyProp");
-            serializer.Serialize(writer, KeyProp);
+            JsonSerializer.Serialize(writer, KeyProp, options);
 
             writer.WritePropertyName("ValueProp");
-            serializer.Serialize(writer, ValueProp);
+            JsonSerializer.Serialize(writer, ValueProp, options);
         }
     }
 
@@ -275,12 +275,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             ElementProp = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("ElementProp");
-            serializer.Serialize(writer, ElementProp);
+            JsonSerializer.Serialize(writer, ElementProp, options);
         }
     }
 
@@ -294,12 +294,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             Struct = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("Struct");
-            serializer.Serialize(writer, Struct);
+            JsonSerializer.Serialize(writer, Struct, options);
         }
     }
 
@@ -313,12 +313,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             SignatureFunction = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("SignatureFunction");
-            serializer.Serialize(writer, SignatureFunction);
+            JsonSerializer.Serialize(writer, SignatureFunction, options);
         }
     }
 
@@ -332,12 +332,12 @@ namespace CUE4Parse.UE4.Objects.UObject
             SignatureFunction = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("SignatureFunction");
-            serializer.Serialize(writer, SignatureFunction);
+            JsonSerializer.Serialize(writer, SignatureFunction, options);
         }
     }
 
@@ -357,15 +357,15 @@ namespace CUE4Parse.UE4.Objects.UObject
             UnderlyingProp = new FPackageIndex(Ar);
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("Enum");
-            serializer.Serialize(writer, Enum);
+            JsonSerializer.Serialize(writer, Enum, options);
 
             writer.WritePropertyName("UnderlyingProp");
-            serializer.Serialize(writer, UnderlyingProp);
+            JsonSerializer.Serialize(writer, UnderlyingProp, options);
         }
     }
 

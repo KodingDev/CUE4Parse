@@ -1,19 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace CUE4Parse.MappingsProvider
 {
     public abstract class JsonTypeMappingsProvider : AbstractTypeMappingsProvider
     {
-        protected static JsonSerializerSettings _serializerSettings = new JsonSerializerSettings
+        protected static JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
         {
-            ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new CamelCaseNamingStrategy(false, false)
-            }
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
         public override TypeMappings? MappingsForGame { get; protected set; }
@@ -22,56 +18,56 @@ namespace CUE4Parse.MappingsProvider
         {
             MappingsForGame ??= new TypeMappings();
 
-            var token = JArray.Parse(structsJson);
-            foreach (var structToken in token)
+            var array = JsonNode.Parse(structsJson)!.AsArray();
+            foreach (var structNode in array)
             {
-                if (structToken == null) continue;
-                var structEntry = ParseStruct(MappingsForGame, structToken);
+                if (structNode == null) continue;
+                var structEntry = ParseStruct(MappingsForGame, structNode);
                 MappingsForGame.Types[structEntry.Name] = structEntry;
             }
             return true;
         }
 
-        private Struct ParseStruct(TypeMappings context, JToken structToken)
+        private Struct ParseStruct(TypeMappings context, JsonNode structNode)
         {
-            var name = structToken["name"]!.ToObject<string>()!;
-            var superType = structToken["superType"]?.ToObject<string>();
+            var name = structNode["name"]!.GetValue<string>();
+            var superType = structNode["superType"]?.GetValue<string>();
 
-            var propertiesToken = (JArray) structToken["properties"]!;
+            var propertiesArray = structNode["properties"]!.AsArray();
             var properties = new Dictionary<int, PropertyInfo>();
-            foreach (var propToken in propertiesToken)
+            foreach (var propNode in propertiesArray)
             {
-                if (propToken == null) continue;
-                var prop = ParsePropertyInfo(propToken);
+                if (propNode == null) continue;
+                var prop = ParsePropertyInfo(propNode);
                 for (int i = 0; i < prop.ArraySize; i++)
                 {
                     properties[prop.Index + i] = prop;
                 }
             }
-            var propertyCount = structToken["propertyCount"]!.ToObject<int>()!;
+            var propertyCount = structNode["propertyCount"]!.GetValue<int>();
 
             return new Struct(context, name, superType, properties, propertyCount);
         }
 
-        private PropertyInfo ParsePropertyInfo(JToken propToken)
+        private PropertyInfo ParsePropertyInfo(JsonNode propNode)
         {
-            var index = propToken["index"]!.ToObject<int>()!;
-            var name = propToken["name"]!.ToObject<string>()!;
-            var arraySize = propToken["arraySize"]?.ToObject<int>();
-            var mappingType = ParsePropertyType(propToken["mappingType"]!);
+            var index = propNode["index"]!.GetValue<int>();
+            var name = propNode["name"]!.GetValue<string>();
+            var arraySize = propNode["arraySize"]?.GetValue<int>();
+            var mappingType = ParsePropertyType(propNode["mappingType"]!);
             return new PropertyInfo(index, name, mappingType, arraySize);
         }
 
-        private PropertyType ParsePropertyType(JToken typeToken)
+        private PropertyType ParsePropertyType(JsonNode typeNode)
         {
-            var Type = typeToken["type"]!.ToObject<string>()!;
-            var StructType = typeToken["structType"]?.ToObject<string>();
-            var innerTypeToken = typeToken["innerType"];
-            var InnerType = innerTypeToken != null ? ParsePropertyType(innerTypeToken) : null;
-            var valueTypeToken = typeToken["valueType"];
-            var ValueType = valueTypeToken != null ? ParsePropertyType(valueTypeToken) : null;
-            var EnumName = typeToken["enumName"]?.ToObject<string>();
-            var IsEnumAsByte = typeToken["isEnumAsByte"]?.ToObject<bool>();
+            var Type = typeNode["type"]!.GetValue<string>();
+            var StructType = typeNode["structType"]?.GetValue<string>();
+            var innerTypeNode = typeNode["innerType"];
+            var InnerType = innerTypeNode != null ? ParsePropertyType(innerTypeNode) : null;
+            var valueTypeNode = typeNode["valueType"];
+            var ValueType = valueTypeNode != null ? ParsePropertyType(valueTypeNode) : null;
+            var EnumName = typeNode["enumName"]?.GetValue<string>();
+            var IsEnumAsByte = typeNode["isEnumAsByte"]?.GetValue<bool>();
             return new PropertyType(Type, StructType, InnerType, ValueType, EnumName, IsEnumAsByte);
         }
 
@@ -79,13 +75,13 @@ namespace CUE4Parse.MappingsProvider
         {
             MappingsForGame ??= new TypeMappings();
 
-            var token = JArray.Parse(enumsJson);
-            foreach (var entry in token)
+            var array = JsonNode.Parse(enumsJson)!.AsArray();
+            foreach (var entry in array)
             {
                 if (entry == null) continue;
-                var values = entry["values"]!.ToObject<string[]>()!;
+                var values = entry["values"]!.AsArray().Select(v => v!.GetValue<string>()).ToArray();
                 var i = 0;
-                MappingsForGame.Enums[entry["name"]!.ToObject<string>()!] = values.ToDictionary(it => i++);
+                MappingsForGame.Enums[entry["name"]!.GetValue<string>()] = values.ToDictionary(it => i++);
             }
         }
     }

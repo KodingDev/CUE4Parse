@@ -1,8 +1,7 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace CUE4Parse.UE4.Wwise.Objects;
 
@@ -35,13 +34,13 @@ public class AkRtpcGraphPoint
 public class AkRtpc
 {
     public readonly uint RtpcId;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public readonly ERTPCType RtpcType;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public readonly ERTPCAccum RtpcAccum;
     public readonly int ParamId;
     public readonly uint RtpcCurveId;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public readonly ECurveScaling Scaling;
     public readonly List<AkRtpcGraphPoint> GraphPoints;
 

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Kismet;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Objects.UObject;
@@ -95,26 +95,26 @@ public class UStruct : UField
         return false;
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (SuperStruct is { IsNull: false } && (!SuperStruct.ResolvedObject?.Equals(Super) ?? false))
         {
             writer.WritePropertyName("SuperStruct");
-            serializer.Serialize(writer, SuperStruct);
+            JsonSerializer.Serialize(writer, SuperStruct, options);
         }
 
         if (Children is { Length: > 0 })
         {
             writer.WritePropertyName("Children");
-            serializer.Serialize(writer, Children);
+            JsonSerializer.Serialize(writer, Children, options);
         }
 
         if (ChildProperties is { Length: > 0 })
         {
             writer.WritePropertyName("ChildProperties");
-            serializer.Serialize(writer, ChildProperties);
+            JsonSerializer.Serialize(writer, ChildProperties, options);
         }
 
         if (ScriptBytecode is { Length: > 0 })
@@ -125,7 +125,7 @@ public class UStruct : UField
             foreach (var expr in ScriptBytecode)
             {
                 writer.WriteStartObject();
-                expr.WriteJson(writer, serializer, true);
+                expr.WriteJson(writer, options, true);
                 writer.WriteEndObject();
             }
 

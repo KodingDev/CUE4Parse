@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Exceptions;
-using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
 using CUE4Parse.UE4.Wwise.Objects;
 using CUE4Parse.UE4.Wwise.Objects.HIRC;
-using CUE4Parse.Utils;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Wwise;

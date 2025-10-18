@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Serilog;
 
 namespace CUE4Parse.UE4.Assets.Exports.Material;
@@ -64,7 +64,7 @@ public abstract class FShaderMapBase
     public FShaderMapContent Content;
     public FSHAHash? ResourceHash;
     public FShaderMapResourceCode? Code;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public EShaderPlatform ShaderPlatform;
     public FMemoryImageResult FrozenArchive;
 
@@ -117,7 +117,7 @@ public class FShaderMapContent
     public int[] ShaderPermutations;
     public FShader[] Shaders;
     public FShaderPipeline[] ShaderPipelines;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public EShaderPlatform ShaderPlatform;
 
     public FShaderMapContent()
@@ -257,7 +257,7 @@ public class FShaderParameterBindings
     {
         public ushort ByteOffset;
         public byte BaseIndex;
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public EUniformBufferBaseType BaseType = EUniformBufferBaseType.UBMT_INVALID;
         //4.26+
         //LAYOUT_FIELD(uint16, ByteOffset);
@@ -280,7 +280,7 @@ public class FShaderParameterBindings
     {
         public ushort ByteOffset;
         public ushort GlobalConstantOffset;
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public EUniformBufferBaseType BaseType;
     }
 
@@ -597,7 +597,7 @@ public class FUniformExpressionSet
             using var dv = new FByteArchive("DefaultValues", DefaultValues, Ar.Versions);
             foreach (var parameter in UniformNumericParameters)
             {
-                dv.Seek(parameter.DefaultValueOffset, System.IO.SeekOrigin.Begin);
+                dv.Seek(parameter.DefaultValueOffset, SeekOrigin.Begin);
                 parameter.Value = parameter.ParameterType switch
                 {
                     EMaterialParameterType.Scalar => dv.Read<float>(),
@@ -638,7 +638,7 @@ public class FHashedMaterialParameterInfo
 {
     public FHashedName Name;
     public int Index;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public EMaterialParameterAssociation Association;
 
     public FHashedMaterialParameterInfo(FMemoryImageArchive Ar)
@@ -672,7 +672,7 @@ public class FMemoryImageMaterialParameterInfo
 {
     public FName Name;
     public int Index;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public EMaterialParameterAssociation Association;
 
     public FMemoryImageMaterialParameterInfo(FMemoryImageArchive Ar)
@@ -728,7 +728,7 @@ public class FMaterialVectorParameterInfo : FMaterialBaseParameterInfo
 public class FMaterialTextureParameterInfo : FMaterialBaseParameterInfo
 {
     public int TextureIndex = -1;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ESamplerSourceMode SamplerSource;
     public byte VirtualTextureLayerIndex = 0;
 
@@ -746,7 +746,7 @@ public class FMaterialUniformPreshaderHeader
     public readonly uint OpcodeOffset;
     public readonly uint OpcodeSize;
     public readonly uint? BufferOffset;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public readonly EValueComponentType? ComponentType;
     public readonly byte? NumComponents;
     public readonly uint? FieldIndex;
@@ -777,7 +777,7 @@ public class FMaterialUniformPreshaderHeader
 public struct FMaterialUniformPreshaderField
 {
     public uint BufferOffset, ComponentIndex;
-    [JsonConverter(typeof(StringEnumConverter))] public EShaderValueType Type;
+    [JsonConverter(typeof(JsonStringEnumConverter))] public EShaderValueType Type;
 }
 
 public enum EShaderValueType : byte
@@ -1018,7 +1018,7 @@ public class FRHIUniformBufferLayoutInitializer
 public struct FRHIUniformBufferResource
 {
     public ushort MemberOffset;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public EUniformBufferBaseType MemberType;
 }
 
@@ -1214,9 +1214,9 @@ public class FGlobalShaderMap : FShaderMapBase
 
 public class FMaterialShaderMapId
 {
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public EMaterialQualityLevel QualityLevel;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ERHIFeatureLevel FeatureLevel;
     public FSHAHash? CookedShaderMapIdHash;
     public FPlatformTypeLayoutParameters? LayoutParams;

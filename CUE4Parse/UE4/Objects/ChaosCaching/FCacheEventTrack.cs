@@ -1,8 +1,9 @@
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.ChaosCaching;
 
@@ -24,19 +25,19 @@ public class FCacheEventTrack : FStructFallback
 
 public class FCacheEventTrackConverter : JsonConverter<FCacheEventTrack>
 {
-    public override void WriteJson(JsonWriter writer, FCacheEventTrack value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FCacheEventTrack value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
         foreach (var property in value.Properties)
         {
             writer.WritePropertyName(property.ArrayIndex > 0 ? $"{property.Name.Text}[{property.ArrayIndex}]" : property.Name.Text);
-            serializer.Serialize(writer, property.Tag);
+            JsonSerializer.Serialize(writer, property.Tag, options);
         }
         writer.WritePropertyName("Events");
-        serializer.Serialize(writer, value.Events);
+        JsonSerializer.Serialize(writer, value.Events, options);
         writer.WriteEndObject();
     }
-    public override FCacheEventTrack ReadJson(JsonReader reader, Type objectType, FCacheEventTrack existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override FCacheEventTrack Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }

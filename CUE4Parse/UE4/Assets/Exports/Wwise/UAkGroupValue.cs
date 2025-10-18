@@ -1,6 +1,6 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Wwise;
 
@@ -17,13 +17,13 @@ public class UAkGroupValue : UAkAudioType
         GroupValueCookedData = new FStructFallback(Ar, "WwiseGroupValueCookedData");
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (GroupValueCookedData is null) return;
 
         writer.WritePropertyName("GroupValueCookedData");
-        serializer.Serialize(writer, GroupValueCookedData);
+        JsonSerializer.Serialize(writer, GroupValueCookedData, options);
     }
 }

@@ -1,15 +1,15 @@
-﻿using CUE4Parse.UE4.Assets.Readers;
-using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json.Linq;
 
 namespace CUE4Parse.UE4.Assets.Exports.Interchange;
 
 public class UInterchangeAssetImportData : UAssetImportData
 {
     public byte[] CachedNodeContainer = [];
-    public List<KeyValuePair<string, JToken>> CachedPipelines = [];
+    public List<KeyValuePair<string, JsonNode>> CachedPipelines = [];
 
     public override void Deserialize(FAssetArchive Ar, long validPos)
     {
@@ -25,20 +25,20 @@ public class UInterchangeAssetImportData : UAssetImportData
             {
                 var key = Ar.ReadFString();
                 var value = Ar.ReadFString();
-                JToken jsonObj = JToken.Parse(value);
-                CachedPipelines.Add(new KeyValuePair<string, JToken>(key, jsonObj));
+                JsonNode jsonObj = JsonNode.Parse(value);
+                CachedPipelines.Add(new KeyValuePair<string, JsonNode>(key, jsonObj));
             }
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         
         writer.WritePropertyName("CachedNodeContainer");
-        writer.WriteValue(CachedNodeContainer);
+        writer.WriteBase64StringValue(CachedNodeContainer);
 
         writer.WritePropertyName("CachedPipelines");
-        serializer.Serialize(writer, CachedPipelines);
+        JsonSerializer.Serialize(writer, CachedPipelines, options);
     }
 }

@@ -1,8 +1,8 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.MovieScene.Evaluation;
 
@@ -69,12 +69,12 @@ public class UMovieSceneLiveLinkSection : Assets.Exports.UObject
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         if (StaticData is null) return;
 
         writer.WritePropertyName("StaticData");
-        serializer.Serialize(writer, StaticData);
+        JsonSerializer.Serialize(writer, StaticData, options);
     }
 }

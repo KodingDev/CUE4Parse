@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
 using CUE4Parse.UE4.Wwise.Objects.Actions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -57,35 +57,35 @@ public class HierarchyEventAction : AbstractHierarchy
         };
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName("EventActionScope");
-        writer.WriteValue(EventActionScope.ToString());
+        writer.WriteStringValue(EventActionScope.ToString());
 
         writer.WritePropertyName("EventActionType");
-        writer.WriteValue(EventActionType.ToString());
+        writer.WriteStringValue(EventActionType.ToString());
 
         if (ReferencedId != 0)
         {
             writer.WritePropertyName("ReferencedId");
-            writer.WriteValue(ReferencedId);
+            writer.WriteNumberValue(ReferencedId);
         }
 
         writer.WritePropertyName("IsBus");
-        writer.WriteValue(IsBus != 0);
+        writer.WriteBooleanValue(IsBus != 0);
 
         writer.WritePropertyName("Props");
-        serializer.Serialize(writer, Props);
+        JsonSerializer.Serialize(writer, Props, options);
 
         writer.WritePropertyName("PropRanges");
-        serializer.Serialize(writer, PropRanges);
+        JsonSerializer.Serialize(writer, PropRanges, options);
 
         if (ActionData != null)
         {
             writer.WritePropertyName("ActionData");
-            serializer.Serialize(writer, ActionData);
+            JsonSerializer.Serialize(writer, ActionData, options);
         }
 
         writer.WriteEndObject();

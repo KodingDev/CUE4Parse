@@ -1,12 +1,10 @@
 using System;
 using System.Runtime.CompilerServices;
-
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
-
-using Newtonsoft.Json;
 
 namespace CUE4Parse.GameTypes.FF7.Assets.Exports;
 
@@ -57,50 +55,50 @@ public class UEffectAppendixMesh : UObject
         Ar.Position += (bufferLength - VerticesCount) * 12;
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName(nameof(Version));
-        writer.WriteValue(Version);
+        writer.WriteNumberValue(Version);
 
         writer.WritePropertyName(nameof(FullSize));
-        writer.WriteValue(FullSize);
+        writer.WriteNumberValue(FullSize);
 
         writer.WritePropertyName(nameof(SplinePathLength));
-        writer.WriteValue(SplinePathLength);
+        writer.WriteNumberValue(SplinePathLength);
 
         writer.WritePropertyName(nameof(TrianglesCount));
-        writer.WriteValue(TrianglesCount);
+        writer.WriteNumberValue(TrianglesCount);
 
         writer.WritePropertyName(nameof(VerticesCount));
-        writer.WriteValue(VerticesCount);
+        writer.WriteNumberValue(VerticesCount);
 
         writer.WritePropertyName(nameof(Offset));
-        writer.WriteValue(Offset);
+        writer.WriteNumberValue(Offset);
 
         writer.WritePropertyName(nameof(TotalTime));
-        writer.WriteValue(TotalTime);
+        writer.WriteNumberValue(TotalTime);
 
         writer.WritePropertyName(nameof(SplinePath));
-        serializer.Serialize(writer, SplinePath);
+        JsonSerializer.Serialize(writer, SplinePath, options);
 
         writer.WritePropertyName(nameof(Times));
-        serializer.Serialize(writer, Times);
+        JsonSerializer.Serialize(writer, Times, options);
 
         writer.WritePropertyName(nameof(Scale1));
-        writer.WriteValue(Scale1);
+        writer.WriteNumberValue(Scale1);
 
         writer.WritePropertyName(nameof(Scale2));
-        writer.WriteValue(Scale2);
+        writer.WriteNumberValue(Scale2);
 
         writer.WritePropertyName(nameof(SkinWeightVertexBuffer));
-        serializer.Serialize(writer, SkinWeightVertexBuffer);
+        JsonSerializer.Serialize(writer, SkinWeightVertexBuffer, options);
 
         writer.WritePropertyName(nameof(IndexBuffer));
-        serializer.Serialize(writer, IndexBuffer);
+        JsonSerializer.Serialize(writer, IndexBuffer, options);
 
         writer.WritePropertyName(nameof(PositionVertexBuffer));
-        serializer.Serialize(writer, PositionVertexBuffer);
+        JsonSerializer.Serialize(writer, PositionVertexBuffer, options);
     }
 }

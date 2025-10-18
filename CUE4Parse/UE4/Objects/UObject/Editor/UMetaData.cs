@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.UObject.Editor;
 
@@ -25,20 +25,20 @@ public class UMetaData : Assets.Exports.UObject
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (ObjectMetaDataMap.Count > 0)
         {
             writer.WritePropertyName("ObjectMetaDataMap");
-            serializer.Serialize(writer, ObjectMetaDataMap);
+            JsonSerializer.Serialize(writer, ObjectMetaDataMap, options);
         }
 
         if (RootMetaDataMap.Count > 0)
         {
             writer.WritePropertyName("RootMetaDataMap");
-            serializer.Serialize(writer, RootMetaDataMap);
+            JsonSerializer.Serialize(writer, RootMetaDataMap, options);
         }
     }
 }

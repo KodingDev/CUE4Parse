@@ -1,10 +1,11 @@
-using CUE4Parse.UE4.Exceptions;
-using CUE4Parse.UE4.Objects.Core.Misc;
-using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using CUE4Parse.UE4.Exceptions;
+using CUE4Parse.UE4.Objects.Core.Misc;
+using CUE4Parse.UE4.Readers;
 
 namespace CUE4Parse.UE4.Shaders;
 
@@ -105,15 +106,15 @@ public readonly struct FPipelineStateStats
 
 public class FPipelineCacheFileFormatTOCConverter : JsonConverter<FPipelineCacheFileFormatTOC>
 {
-    public override void WriteJson(JsonWriter writer, FPipelineCacheFileFormatTOC value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, FPipelineCacheFileFormatTOC value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
         writer.WritePropertyName(nameof(FPipelineCacheFileFormatTOC.SortedOrder));
-        writer.WriteValue(value.SortedOrder);
+        JsonSerializer.Serialize(writer, value.SortedOrder, options);
         if (value.OneGUID.HasValue)
         {
             writer.WritePropertyName("SharedGUID");
-            serializer.Serialize(writer, value.OneGUID.Value);
+            JsonSerializer.Serialize(writer, value.OneGUID.Value, options);
         }
 
         writer.WritePropertyName(nameof(FPipelineCacheFileFormatTOC.MetaData));
@@ -122,46 +123,46 @@ public class FPipelineCacheFileFormatTOCConverter : JsonConverter<FPipelineCache
         {
             writer.WriteStartObject();
             writer.WritePropertyName("FileSize");
-            writer.WriteValue(entry.Value.FileSize);
+            writer.WriteNumberValue(entry.Value.FileSize);
             writer.WritePropertyName("FileOffset");
-            writer.WriteValue(entry.Value.FileOffset);
+            writer.WriteNumberValue(entry.Value.FileOffset);
 
             if (!value.OneGUID.HasValue && entry.Value.FileGuid.HasValue)
             {
                 writer.WritePropertyName("FileGUID");
-                writer.WriteValue(entry.Value.FileGuid);
+                writer.WriteStringValue(entry.Value.FileGuid.ToString());
             }
 
             writer.WritePropertyName("Stats");
-            serializer.Serialize(writer, entry.Value.Stats);
+            JsonSerializer.Serialize(writer, entry.Value.Stats, options);
 
             if (entry.Value.IDs?.Length > 0)
             {
                 writer.WritePropertyName("IDs");
-                serializer.Serialize(writer, entry.Value.IDs);
+                JsonSerializer.Serialize(writer, entry.Value.IDs, options);
             }
             if (entry.Value.Shaders?.Length > 0)
             {
                 writer.WritePropertyName("Shaders");
                 writer.WriteStartArray();
                 for (int i = 0; i < entry.Value.Shaders.Length; i++)
-                    writer.WriteValue(entry.Value.Shaders[i].ToString());
+                    writer.WriteStringValue(entry.Value.Shaders[i].ToString());
                 writer.WriteEndArray();
             }
             if (entry.Value.UsageMask.HasValue)
             {
                 writer.WritePropertyName("UsageMask");
-                writer.WriteValue(entry.Value.UsageMask);
+                writer.WriteNumberValue(entry.Value.UsageMask.Value);
             }
             if (entry.Value.EngineFlags.HasValue)
             {
                 writer.WritePropertyName("EngineFlags");
-                writer.WriteValue(entry.Value.EngineFlags);
+                writer.WriteNumberValue(entry.Value.EngineFlags.Value);
             }
             if (entry.Value.LastUsedUnixTime.HasValue)
             {
                 writer.WritePropertyName("LastUsedUnixTime");
-                writer.WriteValue(entry.Value.LastUsedUnixTime);
+                writer.WriteNumberValue(entry.Value.LastUsedUnixTime.Value);
             }
             writer.WriteEndObject();
         }
@@ -170,7 +171,6 @@ public class FPipelineCacheFileFormatTOCConverter : JsonConverter<FPipelineCache
         writer.WriteEndObject();
     }
 
-    public override FPipelineCacheFileFormatTOC ReadJson(JsonReader reader, Type objectType, FPipelineCacheFileFormatTOC existingValue, bool hasExistingValue,
-        JsonSerializer serializer)
+    public override FPipelineCacheFileFormatTOC Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         => throw new NotImplementedException();
 }

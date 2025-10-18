@@ -1,7 +1,6 @@
-using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -119,70 +118,70 @@ public class HierarchyMusicTrack : AbstractHierarchy
         }
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName("MusicFlags");
-        writer.WriteValue(MusicFlags.ToString());
+        writer.WriteStringValue(MusicFlags.ToString());
 
         writer.WritePropertyName("Sources");
-        serializer.Serialize(writer, Sources);
+        JsonSerializer.Serialize(writer, Sources, options);
 
         writer.WritePropertyName("Playlist");
-        serializer.Serialize(writer, Playlist);
+        JsonSerializer.Serialize(writer, Playlist, options);
 
         writer.WritePropertyName("ClipAutomations");
-        serializer.Serialize(writer, ClipAutomations);
+        JsonSerializer.Serialize(writer, ClipAutomations, options);
 
         writer.WritePropertyName("BaseParams");
         writer.WriteStartObject();
-        BaseParams.WriteJson(writer, serializer);
+        BaseParams.WriteJson(writer, options);
         writer.WriteEndObject();
 
         if (Loop != 0)
         {
             writer.WritePropertyName("Loop");
-            writer.WriteValue(Loop);
+            writer.WriteNumberValue(Loop);
         }
 
         if (LoopModMin != 0)
         {
             writer.WritePropertyName("LoopModMin");
-            writer.WriteValue(LoopModMin);
+            writer.WriteNumberValue(LoopModMin);
         }
 
         if (LoopModMax != 0)
         {
             writer.WritePropertyName("LoopModMax");
-            writer.WriteValue(LoopModMax);
+            writer.WriteNumberValue(LoopModMax);
         }
 
         if (ERSType != 0)
         {
             writer.WritePropertyName("ERSType");
-            writer.WriteValue(ERSType);
+            writer.WriteNumberValue(ERSType);
         }
 
         if (MusicTrackType != 0)
         {
             writer.WritePropertyName("MusicTrackType");
-            writer.WriteValue(MusicTrackType.ToString());
+            writer.WriteStringValue(MusicTrackType.ToString());
         }
 
         if (MusicTrackType == EMusicTrackType.Switch)
         {
             writer.WritePropertyName("SwitchParams");
-            serializer.Serialize(writer, SwitchParams);
+            JsonSerializer.Serialize(writer, SwitchParams, options);
 
             writer.WritePropertyName("TransParams");
-            serializer.Serialize(writer, TransParams);
+            JsonSerializer.Serialize(writer, TransParams, options);
         }
 
         if (LookAheadTime != 0)
         {
             writer.WritePropertyName("LookAheadTime");
-            writer.WriteValue(LookAheadTime);
+            writer.WriteNumberValue(LookAheadTime);
         }
 
         writer.WriteEndObject();

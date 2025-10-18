@@ -3,7 +3,7 @@ using CUE4Parse.Encryption.Aes;
 using CUE4Parse.FileProvider;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
 
@@ -39,12 +39,12 @@ namespace CUE4Parse.Example
 
             // these 2 lines will load all exports the asset has and transform them in a single Json string
             var allExports = provider.LoadPackage(_objectPath).GetExports();
-            var fullJson = JsonConvert.SerializeObject(allExports, Formatting.Indented);
+            var fullJson = JsonSerializer.Serialize(allExports, new JsonSerializerOptions { WriteIndented = true });
 
             // each exports have a name, these 2 lines will load only one export the asset has
             // you must use "LoadObject" and provide the full path followed by a dot followed by the export name
             var variantExport = provider.LoadPackageObject(_objectPath + "." + _objectName);
-            var variantJson = JsonConvert.SerializeObject(variantExport, Formatting.Indented);
+            var variantJson = JsonSerializer.Serialize(variantExport, new JsonSerializerOptions { WriteIndented = true });
 
             Console.WriteLine(variantJson); // Outputs the variantJson.
         }

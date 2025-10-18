@@ -1,5 +1,5 @@
-﻿using CUE4Parse.UE4.Assets.Readers;
-using Newtonsoft.Json;
+﻿using System.Text.Json;
+using CUE4Parse.UE4.Assets.Readers;
 
 namespace CUE4Parse.UE4.Assets.Exports.Nanite;
 
@@ -13,10 +13,10 @@ public class UNaniteDisplacedMesh : UObject
         Data = new FNaniteData(Ar);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName(nameof(Data));
-        serializer.Serialize(writer, Data);
+        JsonSerializer.Serialize(writer, Data, options);
     }
 }

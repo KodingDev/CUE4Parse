@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -87,21 +87,21 @@ public class BaseHierarchyFx : AbstractHierarchy
         public float Value { get; set; }
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WritePropertyName("MediaList");
-        serializer.Serialize(writer, MediaList);
+        JsonSerializer.Serialize(writer, MediaList, options);
 
         writer.WritePropertyName("RtpcList");
-        serializer.Serialize(writer, RtpcList);
+        JsonSerializer.Serialize(writer, RtpcList, options);
 
         writer.WritePropertyName("StateGroups");
-        serializer.Serialize(writer, StateGroups);
+        JsonSerializer.Serialize(writer, StateGroups, options);
 
         writer.WritePropertyName("RtpcInitList");
-        serializer.Serialize(writer, RtpcInitList);
+        JsonSerializer.Serialize(writer, RtpcInitList, options);
 
         writer.WritePropertyName("PluginPropertyValues");
-        serializer.Serialize(writer, PluginPropertyValues);
+        JsonSerializer.Serialize(writer, PluginPropertyValues, options);
     }
 }

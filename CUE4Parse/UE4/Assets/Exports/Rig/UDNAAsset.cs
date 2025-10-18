@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Assets.Exports.Rig;
@@ -115,32 +115,32 @@ public class UDNAAsset : UObject
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName(nameof(Version));
-        serializer.Serialize(writer, Version);
+        JsonSerializer.Serialize(writer, Version, options);
 
         writer.WritePropertyName(nameof(Descriptor));
-        serializer.Serialize(writer, Descriptor);
+        JsonSerializer.Serialize(writer, Descriptor, options);
 
         //writer.WritePropertyName("Definition");
-        //serializer.Serialize(writer, Definition);
+        //JsonSerializer.Serialize(writer, Definition, options);
 
         //writer.WritePropertyName("Behavior");
-        //serializer.Serialize(writer, Behavior);
+        //JsonSerializer.Serialize(writer, Behavior, options);
 
         //writer.WritePropertyName("Geometry");
-        //serializer.Serialize(writer, Geometry);
+        //JsonSerializer.Serialize(writer, Geometry, options);
 
         //writer.WritePropertyName("LayerVersion");
-        //serializer.Serialize(writer, LayerVersion);
+        //JsonSerializer.Serialize(writer, LayerVersion, options);
 
         //writer.WritePropertyName("IndexTable");
-        //serializer.Serialize(writer, IndexTable);
+        //JsonSerializer.Serialize(writer, IndexTable, options);
 
         //writer.WritePropertyName("Layers");
-        //serializer.Serialize(writer, Layers);
+        //JsonSerializer.Serialize(writer, Layers, options);
     }
 }

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Objects.RigVM;
 
@@ -114,101 +114,101 @@ public class URigVM : Assets.Exports.UObject
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName(nameof(CachedVMHash));
-        writer.WriteValue(CachedVMHash);
+        writer.WriteNumberValue(CachedVMHash);
 
         if (ExecuteContextPath != null)
         {
             writer.WritePropertyName(nameof(ExecuteContextPath));
-            writer.WriteValue(ExecuteContextPath);
+            writer.WriteStringValue(ExecuteContextPath);
         }
 
         if (ExternalPropertyPathDescriptions != null)
         {
             writer.WritePropertyName(nameof(ExternalPropertyPathDescriptions));
-            serializer.Serialize(writer, ExternalPropertyPathDescriptions);
+            JsonSerializer.Serialize(writer, ExternalPropertyPathDescriptions, options);
         }
 
         if (FunctionNamesStorage != null)
         {
             writer.WritePropertyName(nameof(FunctionNamesStorage));
-            serializer.Serialize(writer, FunctionNamesStorage);
+            JsonSerializer.Serialize(writer, FunctionNamesStorage, options);
         }
 
         if (ByteCodeStorage != null)
         {
             writer.WritePropertyName(nameof(ByteCodeStorage));
-            serializer.Serialize(writer, ByteCodeStorage);
+            JsonSerializer.Serialize(writer, ByteCodeStorage, options);
         }
 
         if (Parameters != null)
         {
             writer.WritePropertyName(nameof(Parameters));
-            serializer.Serialize(writer, Parameters);
+            JsonSerializer.Serialize(writer, Parameters, options);
         }
 
         if (OperandToDebugRegisters != null)
         {
             writer.WritePropertyName(nameof(OperandToDebugRegisters));
-            serializer.Serialize(writer, OperandToDebugRegisters);
+            JsonSerializer.Serialize(writer, OperandToDebugRegisters, options);
         }
 
         if (UserDefinedStructGuidToPathName != null)
         {
             writer.WritePropertyName(nameof(UserDefinedStructGuidToPathName));
-            serializer.Serialize(writer, UserDefinedStructGuidToPathName);
+            JsonSerializer.Serialize(writer, UserDefinedStructGuidToPathName, options);
         }
 
         if (UserDefinedEnumToPathName != null)
         {
             writer.WritePropertyName(nameof(UserDefinedEnumToPathName));
-            serializer.Serialize(writer, UserDefinedEnumToPathName);
+            JsonSerializer.Serialize(writer, UserDefinedEnumToPathName, options);
         }
 
         if (WorkMemoryStorage != null)
         {
             writer.WritePropertyName(nameof(WorkMemoryStorage));
-            serializer.Serialize(writer, WorkMemoryStorage);
+            JsonSerializer.Serialize(writer, WorkMemoryStorage, options);
         }
 
         if (LiteralMemoryStorage != null)
         {
             writer.WritePropertyName(nameof(LiteralMemoryStorage));
-            serializer.Serialize(writer, LiteralMemoryStorage);
+            JsonSerializer.Serialize(writer, LiteralMemoryStorage, options);
         }
 
         if (DefaultWorkMemoryStorage != null)
         {
             writer.WritePropertyName(nameof(DefaultWorkMemoryStorage));
-            serializer.Serialize(writer, DefaultWorkMemoryStorage);
+            JsonSerializer.Serialize(writer, DefaultWorkMemoryStorage, options);
         }
 
         if (DefaultDebugMemoryStorage != null)
         {
             writer.WritePropertyName(nameof(DefaultDebugMemoryStorage));
-            serializer.Serialize(writer, DefaultDebugMemoryStorage);
+            JsonSerializer.Serialize(writer, DefaultDebugMemoryStorage, options);
         }
 
         if (LiteralMemoryStorageOld != null)
         {
             writer.WritePropertyName(nameof(LiteralMemoryStorageOld));
-            serializer.Serialize(writer, LiteralMemoryStorageOld);
+            JsonSerializer.Serialize(writer, LiteralMemoryStorageOld, options);
         }
 
         if (DefaultWorkMemoryStorageOld != null)
         {
             writer.WritePropertyName(nameof(DefaultWorkMemoryStorageOld));
-            serializer.Serialize(writer, DefaultWorkMemoryStorageOld);
+            JsonSerializer.Serialize(writer, DefaultWorkMemoryStorageOld, options);
         }
 
         if (DefaultDebugMemoryStorageOld != null)
         {
             writer.WritePropertyName(nameof(DefaultDebugMemoryStorageOld));
-            serializer.Serialize(writer, DefaultDebugMemoryStorageOld);
+            JsonSerializer.Serialize(writer, DefaultDebugMemoryStorageOld, options);
         }
     }
 }

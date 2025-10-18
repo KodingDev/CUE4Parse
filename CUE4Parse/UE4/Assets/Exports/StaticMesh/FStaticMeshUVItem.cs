@@ -1,7 +1,7 @@
-using CUE4Parse.UE4.Readers;
-using CUE4Parse.UE4.Objects.RenderCore;
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Objects.Meshes;
-using Newtonsoft.Json;
+using CUE4Parse.UE4.Objects.RenderCore;
+using CUE4Parse.UE4.Readers;
 
 namespace CUE4Parse.UE4.Assets.Exports.StaticMesh
 {

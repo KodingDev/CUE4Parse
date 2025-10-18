@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -27,20 +27,20 @@ public class HierarchyLayerContainer : BaseHierarchy
         }
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("ChildIds");
-        serializer.Serialize(writer, ChildIds);
+        JsonSerializer.Serialize(writer, ChildIds, options);
 
         writer.WritePropertyName("Layers");
-        serializer.Serialize(writer, Layers);
+        JsonSerializer.Serialize(writer, Layers, options);
 
         writer.WritePropertyName("IsContinuousValidation");
-        writer.WriteValue(IsContinuousValidation != 0);
+        writer.WriteBooleanValue(IsContinuousValidation != 0);
 
         writer.WriteEndObject();
     }

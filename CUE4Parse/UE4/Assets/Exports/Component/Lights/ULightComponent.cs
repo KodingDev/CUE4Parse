@@ -1,10 +1,10 @@
 using System;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Exports.BuildData;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Component.Lights;
 
@@ -34,27 +34,27 @@ public class ULightComponent : ULightComponentBase
 
     public virtual double GetNitIntensity() => Intensity;
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (LegacyData != null)
         {
             writer.WritePropertyName("LegacyData");
-            serializer.Serialize(writer, LegacyData);
+            JsonSerializer.Serialize(writer, LegacyData, options);
         }
 
         var defaultRotation = this is URectLightComponent ? FRotator.ZeroRotator : new FRotator(-90, 0, 0);
 
         writer.WritePropertyName("RelativeRotation");
-        serializer.Serialize(writer, GetOrDefault<FRotator>("RelativeRotation", defaultRotation));
+        JsonSerializer.Serialize(writer, GetOrDefault<FRotator>("RelativeRotation", defaultRotation));
 
         writer.WritePropertyName("RelativeLocation");
-        serializer.Serialize(writer, GetRelativeLocation());
+        JsonSerializer.Serialize(writer, GetRelativeLocation());
 
 #if DEBUG
         writer.WritePropertyName("RelativeRotationQuat");
-        serializer.Serialize(writer, GetOrDefault<FRotator>("RelativeRotation", FRotator.ZeroRotator)
+        JsonSerializer.Serialize(writer, GetOrDefault<FRotator>("RelativeRotation", FRotator.ZeroRotator)
             .GetNormalized().Quaternion());
 #endif
     }
@@ -77,11 +77,11 @@ public class ULocalLightComponent : ULightComponent
         return Intensity;
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName("IntensityNits");
-        serializer.Serialize(writer, GetNitIntensity());
+        JsonSerializer.Serialize(writer, GetNitIntensity());
     }
 }
 
@@ -141,11 +141,11 @@ public class UPointLightComponent : ULocalLightComponent
         return LightUtils.ConvertToIntensityToNits(Intensity, areaInSqMeters, solidAngle, IntensityUnits);
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
         writer.WritePropertyName("bUseInverseSquaredFalloff");
-        writer.WriteValue(bUseInverseSquaredFalloff);
+        writer.WriteBooleanValue(bUseInverseSquaredFalloff);
     }
 }
 

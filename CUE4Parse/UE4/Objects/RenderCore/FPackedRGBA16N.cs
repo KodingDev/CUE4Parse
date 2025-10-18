@@ -1,7 +1,7 @@
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Objects.Core.Math;
-using CUE4Parse.UE4.Versions;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
+using CUE4Parse.UE4.Versions;
 
 namespace CUE4Parse.UE4.Objects.RenderCore
 {

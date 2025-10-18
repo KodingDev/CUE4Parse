@@ -1,9 +1,9 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Exceptions;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Assets.Exports.Component.StaticMesh;
 
@@ -130,20 +130,20 @@ public class UInstancedStaticMeshComponent : UStaticMeshComponent
         }
     }
 
-    protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         if (PerInstanceSMData is { Length: > 0 })
         {
             writer.WritePropertyName("PerInstanceSMData");
-            serializer.Serialize(writer, PerInstanceSMData);
+            JsonSerializer.Serialize(writer, PerInstanceSMData, options);
         }
 
         if (PerInstanceSMCustomData is { Length: > 0 })
         {
             writer.WritePropertyName("PerInstanceSMCustomData");
-            serializer.Serialize(writer, PerInstanceSMCustomData);
+            JsonSerializer.Serialize(writer, PerInstanceSMCustomData, options);
         }
     }
 }

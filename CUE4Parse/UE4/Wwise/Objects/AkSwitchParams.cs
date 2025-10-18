@@ -1,7 +1,6 @@
+using System.Text.Json.Serialization;
 using CUE4Parse.UE4.Readers;
 using CUE4Parse.UE4.Wwise.Enums;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace CUE4Parse.UE4.Wwise.Objects;
 
@@ -10,7 +9,7 @@ public class AkSwitchParams
     public readonly uint NodeId;
     public readonly bool IsFirstOnly;
     public readonly bool ContinuePlayback;
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public readonly EOnSwitchMode OnSwitchMode;
     public readonly int FadeOutTime;
     public readonly int FadeInTime;

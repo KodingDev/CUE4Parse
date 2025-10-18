@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Readers;
 using CUE4Parse.UE4.Objects.Engine.Curves;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CUE4Parse.UE4.Assets.Exports.Engine
@@ -39,15 +39,15 @@ namespace CUE4Parse.UE4.Assets.Exports.Engine
             }
         }
 
-        protected internal override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        protected internal override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
-            base.WriteJson(writer, serializer);
+            base.WriteJson(writer, options);
 
             writer.WritePropertyName("CurveTableMode");
-            writer.WriteValue(CurveTableMode.ToString());
+            writer.WriteStringValue(CurveTableMode.ToString());
 
             writer.WritePropertyName("Rows");
-            serializer.Serialize(writer, RowMap);
+            JsonSerializer.Serialize(writer, RowMap, options);
         }
 
         public FRealCurve? FindCurve(FName rowName, bool bWarnIfNotFound = true)

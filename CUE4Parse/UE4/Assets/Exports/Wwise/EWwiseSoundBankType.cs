@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace CUE4Parse.UE4.Assets.Exports.Wwise;
 

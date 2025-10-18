@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects.HIRC;
 
@@ -39,32 +39,32 @@ public class HierarchySwitchContainer : BaseHierarchy
         }
     }
 
-    public override void WriteJson(JsonWriter writer, JsonSerializer serializer)
+    public override void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
-        base.WriteJson(writer, serializer);
+        base.WriteJson(writer, options);
 
         writer.WritePropertyName("GroupType");
-        writer.WriteValue(GroupType);
+        writer.WriteNumberValue(GroupType);
 
         writer.WritePropertyName("GroupId");
-        writer.WriteValue(GroupId);
+        writer.WriteNumberValue(GroupId);
 
         writer.WritePropertyName("DefaultSwitch");
-        writer.WriteValue(DefaultSwitch);
+        writer.WriteNumberValue(DefaultSwitch);
 
         writer.WritePropertyName("IsContinuousValidation");
-        writer.WriteValue(IsContinuousValidation != 0);
+        writer.WriteBooleanValue(IsContinuousValidation != 0);
 
         writer.WritePropertyName("ChildIds");
-        serializer.Serialize(writer, ChildIds);
+        JsonSerializer.Serialize(writer, ChildIds, options);
 
         writer.WritePropertyName("SwitchPackages");
-        serializer.Serialize(writer, SwitchPackages);
+        JsonSerializer.Serialize(writer, SwitchPackages, options);
 
         writer.WritePropertyName("SwitchParams");
-        serializer.Serialize(writer, SwitchParams);
+        JsonSerializer.Serialize(writer, SwitchParams, options);
 
         writer.WriteEndObject();
     }

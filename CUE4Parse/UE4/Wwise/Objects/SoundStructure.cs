@@ -1,5 +1,5 @@
+using System.Text.Json;
 using CUE4Parse.UE4.Readers;
-using Newtonsoft.Json;
 
 namespace CUE4Parse.UE4.Wwise.Objects
 {
@@ -16,18 +16,18 @@ namespace CUE4Parse.UE4.Wwise.Objects
             SoundStructurePositionData = new SoundStructurePosition(Ar);
         }
 
-        public void WriteJson(JsonWriter writer, JsonSerializer serializer)
+        public void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
 
             writer.WritePropertyName("Effects");
-            SoundStructureEffectsData.WriteJson(writer, serializer);
+            SoundStructureEffectsData.WriteJson(writer, options);
 
             writer.WritePropertyName("Settings");
-            SoundStructureSettingsData.WriteJson(writer, serializer);
+            SoundStructureSettingsData.WriteJson(writer, options);
 
             writer.WritePropertyName("Position");
-            SoundStructurePositionData.WriteJson(writer, serializer);
+            SoundStructurePositionData.WriteJson(writer, options);
 
             writer.WriteEndObject();
         }
