@@ -1124,7 +1124,7 @@ public class FPropertyTagTypeConverter : JsonConverter<FPropertyTagType>
 {
     public override void Write(Utf8JsonWriter writer, FPropertyTagType value, JsonSerializerOptions options)
     {
-        JsonSerializer.Serialize(writer, value, options);
+        JsonSerializer.Serialize(writer, value.GenericValue, options);
     }
 
     public override FPropertyTagType Read(ref Utf8JsonReader reader, Type typeToConvert,
@@ -2996,6 +2996,16 @@ public class FNameConverter : JsonConverter<FName>
     public override void Write(Utf8JsonWriter writer, FName value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(value.Text);
+    }
+
+    public override void WriteAsPropertyName(Utf8JsonWriter writer, FName value, JsonSerializerOptions options)
+    {
+        writer.WritePropertyName(value.Text);
+    }
+
+    public override FName ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        return new FName(reader.GetString());
     }
 
     public override FName Read(ref Utf8JsonReader reader, Type typeToConvert,
