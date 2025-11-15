@@ -38,6 +38,7 @@ namespace CUE4Parse.Compression
                     Buffer.BlockCopy(compressed, compressedOffset, uncompressed, uncompressedOffset, compressedSize);
                     return;
                 case CompressionMethod.XB1Zlib:
+                case CompressionMethod.XboxOneGDKZlib:
                 case CompressionMethod.Zlib:
                     var zlib = new ZlibStream(srcStream, CompressionMode.Decompress);
                     zlib.Read(uncompressed, uncompressedOffset, uncompressedSize);

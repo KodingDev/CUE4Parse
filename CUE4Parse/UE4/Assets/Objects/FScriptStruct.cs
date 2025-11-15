@@ -1,3 +1,4 @@
+using System;
 using CUE4Parse.GameTypes._2XKO.Assets.Exports;
 using CUE4Parse.GameTypes.Borderlands4.Assets.Objects;
 using CUE4Parse.GameTypes.Brickadia.Objects;
@@ -9,6 +10,7 @@ using CUE4Parse.GameTypes.MA.Objects;
 using CUE4Parse.GameTypes.MindsEye.Objects;
 using CUE4Parse.GameTypes.NetEase.MAR.Objects;
 using CUE4Parse.GameTypes.OtherGames.Objects;
+using CUE4Parse.GameTypes.OuterWorlds2.Objects;
 using CUE4Parse.GameTypes.PUBG.Assets.Objects;
 using CUE4Parse.GameTypes.SG2.Objects;
 using CUE4Parse.GameTypes.SOD2.Assets.Objects;
@@ -19,6 +21,7 @@ using CUE4Parse.GameTypes.TQ2.Objects;
 using CUE4Parse.GameTypes.TSW.Objects;
 using CUE4Parse.UE4.Assets.Exports.Animation;
 using CUE4Parse.UE4.Assets.Exports.Engine.Font;
+using CUE4Parse.UE4.Assets.Exports.Harmonix;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Objects.Properties;
@@ -48,6 +51,7 @@ using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Objects.WorldCondition;
 using CUE4Parse.UE4.Versions;
 using Newtonsoft.Json;
+using FRawUIntStruct = CUE4Parse.UE4.Objects.StructUtils.FRawStruct<uint>;
 
 namespace CUE4Parse.UE4.Assets.Objects;
 
@@ -85,11 +89,11 @@ public class FScriptStruct
             "MaterialAttributesInput" => type == ReadType.ZERO ? new FExpressionInput() : new FExpressionInput(Ar),
             "SkeletalMeshSamplingLODBuiltData" => type == ReadType.ZERO ? new FSkeletalMeshSamplingLODBuiltData() : new FSkeletalMeshSamplingLODBuiltData(Ar),
             "SkeletalMeshSamplingRegionBuiltData" => type == ReadType.ZERO ? new FSkeletalMeshSamplingRegionBuiltData() : new FSkeletalMeshSamplingRegionBuiltData(Ar),
-            "PerPlatformBool" => type == ReadType.ZERO ? new TPerPlatformProperty.FPerPlatformBool() : new TPerPlatformProperty.FPerPlatformBool(Ar),
-            "PerPlatformFloat" => type == ReadType.ZERO ? new TPerPlatformProperty.FPerPlatformFloat() : new TPerPlatformProperty.FPerPlatformFloat(Ar),
-            "PerPlatformInt" => type == ReadType.ZERO ? new TPerPlatformProperty.FPerPlatformInt() : new TPerPlatformProperty.FPerPlatformInt(Ar),
-            "PerPlatformFrameRate" => type == ReadType.ZERO ? new TPerPlatformProperty.FPerPlatformFrameRate() : new TPerPlatformProperty.FPerPlatformFrameRate(Ar),
-            "PerPlatformFString" => type == ReadType.ZERO ? new TPerPlatformProperty.FPerPlatformFString() : new TPerPlatformProperty.FPerPlatformFString(Ar),
+            "PerPlatformBool" => type == ReadType.ZERO ? new FPerPlatformBool() : new FPerPlatformBool(Ar),
+            "PerPlatformFloat" => type == ReadType.ZERO ? new FPerPlatformFloat() : new FPerPlatformFloat(Ar),
+            "PerPlatformInt" => type == ReadType.ZERO ? new FPerPlatformInt() : new FPerPlatformInt(Ar),
+            "PerPlatformFrameRate" => type == ReadType.ZERO ? new FPerPlatformFrameRate() : new FPerPlatformFrameRate(Ar),
+            "PerPlatformFString" => type == ReadType.ZERO ? new FPerPlatformFString() : new FPerPlatformFString(Ar),
             "PerQualityLevelInt" => type == ReadType.ZERO ? new FPerQualityLevelInt() : new FPerQualityLevelInt(Ar),
             "PerQualityLevelFloat" => type == ReadType.ZERO ? new FPerQualityLevelFloat() : new FPerQualityLevelFloat(Ar),
             "PannerDetails" => new FPannerDetails(Ar),
@@ -142,6 +146,7 @@ public class FScriptStruct
             "Rotator3f" => type == ReadType.ZERO ? new FRotator() : new FRotator(Ar.Read<float>(), Ar.Read<float>(), Ar.Read<float>()),
             "Rotator3d" => type == ReadType.ZERO ? new FRotator() : new FRotator(Ar.Read<double>(), Ar.Read<double>(), Ar.Read<double>()),
             "RawAnimSequenceTrack" => new FRawAnimSequenceTrack(Ar),
+            "Spline" => type == ReadType.ZERO ? new FSpline() : new FSpline(Ar),
             "Sphere" => type == ReadType.ZERO ? new FSphere() : new FSphere(Ar),
             "Sphere3f" => type == ReadType.ZERO ? new FSphere() : new FSphere(Ar.Read<TIntVector3<float>>(), Ar.Read<float>()),
             "Sphere3d" => type == ReadType.ZERO ? new FSphere() : new FSphere(Ar.Read<TIntVector3<double>>(), Ar.Read<double>()),
@@ -189,9 +194,13 @@ public class FScriptStruct
             "DataCacheDuplicatedObjectData" => new FDataCacheDuplicatedObjectData(Ar),
             "EdGraphPinType" => new FEdGraphPinType(Ar),
 
+            // Custom struct types for simple structs in tagged TMap
+            "UInt32Property" => type == ReadType.ZERO ? new FRawUIntStruct() : Ar.Read<FRawUIntStruct>(),
+
             // FortniteGame
             "ConnectivityCube" => new FConnectivityCube(Ar),
             "FortActorRecord" => new FFortActorRecord(Ar),
+            "GameplayEventFunction" => new FGameplayEventFunction(Ar),
 
             // Train Sim World
             "DistanceQuantity" => Ar.Read<FDistanceQuantity>(),
@@ -303,14 +312,14 @@ public class FScriptStruct
             "PowerQuantity" or "ForceQuantity" or "TimeUnit" or "PressureQuantity" or "VolumeQuantity" => new FStructFallback(Ar, structName, FRawHeader.FullRead),
 
             // Daimon Blades
-            "SOS_GDValue" => new FStructFallback(Ar, structName, new FRawHeader([(1,1)]), ReadType.RAW),
+            "SOS_GDValue" => new FStructFallback(Ar, structName, new FRawHeader([(1, 1)]), ReadType.RAW),
 
-            "SoftEnumName" when Ar.Game is EGame.GAME_LittleNightmares3 => new FStructFallback(Ar, structName, new FRawHeader([(1,1)]), ReadType.RAW),
+            "SoftEnumName" when Ar.Game is EGame.GAME_LittleNightmares3 => new FStructFallback(Ar, structName, new FRawHeader([(1, 1)]), ReadType.RAW),
             "KosmosHangTraversalData" when Ar.Game is EGame.GAME_LittleNightmares3 => new FStructFallback(Ar, structName, FRawHeader.FullRead, ReadType.RAW),
 
-            "EnumName" when Ar.Game is EGame.GAME_Reanimal => new FStructFallback(Ar, structName, new FRawHeader([(1,1)]), ReadType.RAW),
+            "EnumName" when Ar.Game is EGame.GAME_Reanimal => new FStructFallback(Ar, structName, new FRawHeader([(1, 1)]), ReadType.RAW),
             "AbstractEnum" or "EnumName" or "JumpParams" when Ar.Game is EGame.GAME_Reanimal => new FStructFallback(Ar, structName, FRawHeader.FullRead, ReadType.RAW),
-            "ChalkboardSectionKey" when Ar.Game is EGame.GAME_Reanimal => new FStructFallback(Ar, structName, new FRawHeader([(0,2), (2, 2)]), ReadType.RAW),
+            "ChalkboardSectionKey" when Ar.Game is EGame.GAME_Reanimal => new FStructFallback(Ar, structName, new FRawHeader([(0, 2), (2, 2)]), ReadType.RAW),
             "LedgeMetaData" when Ar.Game is EGame.GAME_Reanimal => new FFixedSizeStruct(Ar, 1),
 
             "ItemDataContainer" when Ar.Game is EGame.GAME_VEIN => new FStructFallback(Ar, structName, FRawHeader.FullRead, ReadType.RAW),
@@ -320,6 +329,15 @@ public class FScriptStruct
 
             "Linecode" when Ar.Game is EGame.GAME_Psychonauts2 => new FLinecode(Ar),
             "P2Attribute" when Ar.Game is EGame.GAME_Psychonauts2 => new FP2Attribute(Ar),
+
+            "AIBehaviorTreeReference" when Ar.Game is EGame.GAME_OuterWorlds2 => new FAIBehaviorTreeReference(Ar),
+            "BlueprintFunctionLibraryConditional" when Ar.Game is EGame.GAME_OuterWorlds2 => new FBlueprintFunctionLibraryConditional(Ar, true),
+            "BlueprintDefinedScript" when Ar.Game is EGame.GAME_OuterWorlds2 => new FBlueprintFunctionLibraryConditional(Ar, false),
+            "AIGroupBehaviorClassSelector" when Ar.Game is EGame.GAME_OuterWorlds2 => new FSoftObjectPath(Ar),
+
+            // The Last Caretaker 
+            "VoyagePackedLocalTransform" => new VoyagePackedLocalTransform(Ar),
+            "VoyageFloat16" => Ar.Read<FRawStruct<Half>>(),
 
             _ => Ar.Game switch
             {

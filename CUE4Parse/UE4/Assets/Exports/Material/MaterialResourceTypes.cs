@@ -1,9 +1,8 @@
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CUE4Parse.UE4.Assets.Exports.Niagara.NiagaraShader;
+using CUE4Parse.UE4.Objects.Core.Compression;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Objects.RenderCore;
@@ -571,6 +570,7 @@ public class FUniformExpressionSet
     public FMaterialPreshaderData UniformPreshaderData;
     public byte[]? DefaultValues;
     public FMaterialVirtualTextureStack[] VTStacks;
+    public FMaterialCacheTagStack[]? MaterialCacheTagStacks;
     public FGuid[] ParameterCollections;
     public FRHIUniformBufferLayoutInitializer UniformBufferLayoutInitializer;
 
@@ -578,6 +578,7 @@ public class FUniformExpressionSet
     {
         var materialTextureParameterTypeCount = Ar.Game switch
         {
+            EGame.GAME_InfinityNikki => 8,
             >= EGame.GAME_UE5_3 => 7,
             >= EGame.GAME_UE5_0 => 6,
             _ => 5,
@@ -612,7 +613,7 @@ public class FUniformExpressionSet
                 {
                     EMaterialParameterType.Scalar => dv.Read<float>(),
                     EMaterialParameterType.Vector => dv.Read<FLinearColor>(),
-                    EMaterialParameterType.DoubleVector => new FVector4(Ar),
+                    EMaterialParameterType.DoubleVector => new FVector4(dv),
                     EMaterialParameterType.StaticSwitch => dv.ReadFlag(),
                     _ => throw new NotImplementedException($"Unknown EMaterialParameterType: {parameter.ParameterType}"),
                 };
@@ -631,9 +632,19 @@ public class FUniformExpressionSet
         }
 
         VTStacks = Ar.ReadArray(() => new FMaterialVirtualTextureStack(Ar));
+        if (Ar.Game >= EGame.GAME_UE5_7)
+        {
+            MaterialCacheTagStacks = Ar.ReadArray<FMaterialCacheTagStack>();
+        }
         ParameterCollections = Ar.ReadArray<FGuid>();
         UniformBufferLayoutInitializer = new FRHIUniformBufferLayoutInitializer(Ar);
     }
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct FMaterialCacheTagStack
+{
+    public FGuid TagGuid;
 }
 
 [StructLayout(LayoutKind.Sequential, Size = 4)]
@@ -1079,86 +1090,6 @@ public class FShaderCodeResource
     }
 }
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct FCompressedBufferHeader
-{
-    public const uint ExpectedMagic = 0xb7756362;
-
-    /** A magic number to identify a compressed buffer. Always 0xb7756362. */
-    public uint Magic = ExpectedMagic;
-    /** A CRC-32 used to check integrity of the buffer. Uses the polynomial 0x04c11db7. */
-    public uint Crc32 = 0;
-    /** The method used to compress the buffer. Affects layout of data following the header. */
-    [JsonConverter(typeof(StringEnumConverter))]
-    public EMethod Method = EMethod.None;
-    /** The method-specific compressor used to compress the buffer. */
-    public byte Compressor = 0;
-    /** The method-specific compression level used to compress the buffer. */
-    public byte CompressionLevel = 0;
-    /** The power of two size of every uncompressed block except the last. Size is 1 << BlockSizeExponent. */
-    public byte BlockSizeExponent = 0;
-    /** The number of blocks that follow the header. */
-    public uint BlockCount = 0;
-    /** The total size of the uncompressed data. */
-    public ulong TotalRawSize = 0;
-    /** The total size of the compressed data including the header. */
-    public ulong TotalCompressedSize = 0;
-    /** The hash of the uncompressed data. */
-    public byte[] RawHash;
-
-    public FCompressedBufferHeader() { }
-
-    public FCompressedBufferHeader(FArchive Ar)
-    {
-        Magic = BinaryPrimitives.ReverseEndianness(Ar.Read<uint>());
-        if (Magic != ExpectedMagic)
-        {
-            throw new Exception($"FCompressedBuffer has invalid magic number: 0x{Magic:X8}");
-        }
-
-        Crc32 = BinaryPrimitives.ReverseEndianness(Ar.Read<uint>());
-        Method = Ar.Read<EMethod>();
-        Compressor = Ar.Read<byte>();
-        CompressionLevel = Ar.Read<byte>();
-        BlockSizeExponent = Ar.Read<byte>();
-        BlockCount = BinaryPrimitives.ReverseEndianness(Ar.Read<uint>());
-        TotalRawSize = BinaryPrimitives.ReverseEndianness(Ar.Read<ulong>());
-        TotalCompressedSize = BinaryPrimitives.ReverseEndianness(Ar.Read<ulong>());
-        RawHash = Ar.ReadArray<byte>(32);
-    }
-
-    public enum EMethod : byte
-    {
-        None = 0,
-        Oodle = 3,
-        LZ4 = 4,
-    }
-};
-
-public class FCompressedBuffer
-{
-    public FCompressedBufferHeader Header;
-    public byte[] Data;
-
-    public FCompressedBuffer(FArchive Ar)
-    {
-        Header = new FCompressedBufferHeader(Ar);
-
-        const ulong MaxCompressedSize = (ulong)1 << 48;
-        ulong headerSize = 64; // hardcode for now
-        if (Header.Magic == FCompressedBufferHeader.ExpectedMagic &&
-            Header.TotalCompressedSize >= headerSize &&
-            Header.TotalCompressedSize <= MaxCompressedSize)
-        {
-            Data = Ar.ReadArray<byte>((int)(Header.TotalCompressedSize - headerSize));
-        }
-        else
-        {
-            Data = [];
-        }
-    }
-}
-
 public class FSharedBuffer
 {
     public long Len;
@@ -1355,7 +1286,7 @@ public class FMaterialShaderMapId
         {
             var legacyQualityLevel = (EMaterialQualityLevel) Ar.Read<byte>(); // Is it enum?
         }
-
+        if (Ar.Game == EGame.GAME_TheFirstDescendant) Ar.Position += 4;
         CookedShaderMapIdHash = new FSHAHash(Ar);
 
         if (!bIsLegacyPackage)
