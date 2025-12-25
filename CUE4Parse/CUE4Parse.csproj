@@ -57,7 +57,7 @@
     <CMakeBuildDir>$(CMakeProject)builddir</CMakeBuildDir>
   </PropertyGroup>
 
-  <Target Name="Build-Natives" BeforeTargets="BeforeBuild" AfterTargets="AfterBuild">
+  <Target Name="Build-Natives" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(CMakeBuildDir)" Condition="!Exists('$(CMakeBuildDir)')" />
     <Exec Command="cmake .." ConsoleToMSBuild="true" WorkingDirectory="$(CMakeBuildDir)" IgnoreExitCode="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
@@ -68,28 +68,35 @@
       <Output TaskParameter="ExitCode" PropertyName="CMakeExitCode" />
     </Exec>
     <Message Condition=" '$(CMakeExitCode)' != '0' " Importance="high" Text="CUE4Parse-Natives build failed. Continuing without it. ERROR: '$(OutputOfExec)'" />
-    <ItemGroup Condition=" '$(CMakeExitCode)' == '0' ">
-      <Content Include="..\CUE4Parse-Natives\bin\$(Configuration)\CUE4Parse-Natives.dll" Condition=" '$(OS)' == 'Windows_NT' ">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <PackagePath>lib/$(TargetFramework)</PackagePath>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-      </Content>
-      <Content Include="..\CUE4Parse-Natives\bin\$(Configuration)\CUE4Parse-Natives.pdb" Condition=" '$(Configuration)' == 'Debug' And  '$(OS)' == 'Windows_NT' ">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <Pack>false</Pack>
-      </Content>
-      <Content Include="$(CMakeBuildDir)/CUE4Parse-Natives.so" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <PackagePath>lib/$(TargetFramework)</PackagePath>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-      </Content>
-      <Content Include="$(CMakeBuildDir)/CUE4Parse-Natives.dylib" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' ">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <PackagePath>lib/$(TargetFramework)</PackagePath>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-      </Content>
-    </ItemGroup>
   </Target>
+
+  <!-- Native libraries for NuGet package -->
+  <ItemGroup Condition="Exists('..\CUE4Parse-Natives\bin\$(Configuration)\CUE4Parse-Natives.dll')">
+    <None Include="..\CUE4Parse-Natives\bin\$(Configuration)\CUE4Parse-Natives.dll">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/win-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>CUE4Parse-Natives.dll</Link>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('$(CMakeBuildDir)/CUE4Parse-Natives.so')">
+    <None Include="$(CMakeBuildDir)/CUE4Parse-Natives.so">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/linux-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>CUE4Parse-Natives.so</Link>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('$(CMakeBuildDir)/CUE4Parse-Natives.dylib')">
+    <None Include="$(CMakeBuildDir)/CUE4Parse-Natives.dylib">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/osx-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>CUE4Parse-Natives.dylib</Link>
+    </None>
+  </ItemGroup>
 
   <!-- remove everything?? -->
   <Target Name="CleanCMakeProj" BeforeTargets="BeforeClean">

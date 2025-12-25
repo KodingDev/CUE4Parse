@@ -32,20 +32,71 @@
     <ProjectReference Include="..\CUE4Parse\CUE4Parse.csproj" />
   </ItemGroup>
 
+  <!-- Detex natives -->
   <ItemGroup>
-    <None Remove="Resources\Detex.dll" />
-    <EmbeddedResource Include="Resources\Detex.dll" LogicalName="CUE4Parse_Conversion.Resources.Detex.dll" />
-    <None Remove="Resources\libdetex-x86_64.so.0.1.2" />
-    <EmbeddedResource Include="Resources\libdetex-x86_64.so.0.1.2" LogicalName="CUE4Parse_Conversion.Resources.Detex.x64.so" />
-    <None Remove="Resources\libdetex-arm64.so.0.1.2" />
-    <EmbeddedResource Include="Resources\libdetex-arm64.so.0.1.2" LogicalName="CUE4Parse_Conversion.Resources.Detex.arm64.so" />
-    
-    <None Remove="Resources\tegra_swizzle_x64.dll" />
-    <EmbeddedResource Include="Resources\tegra_swizzle_x64.dll" LogicalName="CUE4Parse_Conversion.Resources.tegra_swizzle_x64.dll" />
-    <None Remove="Resources\libtegra_swizzle-x86_64.so" />
-    <EmbeddedResource Include="Resources\libtegra_swizzle-x86_64.so" LogicalName="CUE4Parse_Conversion.Resources.tegra_swizzle.x64.so" />
-    <None Remove="Resources\libtegra_swizzle-arm64.so" />
-    <EmbeddedResource Include="Resources\libtegra_swizzle-arm64.so" LogicalName="CUE4Parse_Conversion.Resources.tegra_swizzle.arm64.so" />
+    <None Include="Resources\detex\detex-windows-x86_64\libdetex.dll">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/win-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/win-x64/native/libdetex.dll</TargetPath>
+    </None>
+    <None Include="Resources\detex\detex-linux-x86_64\libdetex.so">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/linux-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/linux-x64/native/libdetex.so</TargetPath>
+    </None>
+    <None Include="Resources\detex\detex-linux-aarch64\libdetex.so">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/linux-arm64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/linux-arm64/native/libdetex.so</TargetPath>
+    </None>
+    <None Include="Resources\detex\detex-macos-x86_64\libdetex.dylib">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/osx-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/osx-x64/native/libdetex.dylib</TargetPath>
+    </None>
+    <None Include="Resources\detex\detex-macos-arm64\libdetex.dylib">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/osx-arm64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/osx-arm64/native/libdetex.dylib</TargetPath>
+    </None>
   </ItemGroup>
-
+  
+  <!-- Tegra Swizzle natives -->
+  <ItemGroup>
+    <None Include="Resources\tegra_swizzle\tegra_swizzle-windows-x86_64\tegra_swizzle.dll">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/win-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/win-x64/native/tegra_swizzle.dll</TargetPath>
+    </None>
+    <None Include="Resources\tegra_swizzle\tegra_swizzle-linux-x86_64\libtegra_swizzle.so">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/linux-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/linux-x64/native/libtegra_swizzle.so</TargetPath>
+    </None>
+    <None Include="Resources\tegra_swizzle\tegra_swizzle-linux-aarch64\libtegra_swizzle.so">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/linux-arm64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/linux-arm64/native/libtegra_swizzle.so</TargetPath>
+    </None>
+    <None Include="Resources\tegra_swizzle\tegra_swizzle-macos-x86_64\libtegra_swizzle.dylib">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/osx-x64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/osx-x64/native/libtegra_swizzle.dylib</TargetPath>
+    </None>
+    <None Include="Resources\tegra_swizzle\tegra_swizzle-macos-arm64\libtegra_swizzle.dylib">
+      <Pack>true</Pack>
+      <PackagePath>runtimes/osx-arm64/native</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>runtimes/osx-arm64/native/libtegra_swizzle.dylib</TargetPath>
+    </None>
+  </ItemGroup>
 </Project>

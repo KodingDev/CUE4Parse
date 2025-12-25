@@ -1,88 +1,24 @@
 using System;
-using System.IO;
-using System.Reflection;
-using System.Resources;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 
 namespace CUE4Parse_Conversion.Textures;
 
 public static class PlatformDeswizzlers
 {
-    static PlatformDeswizzlers()
-    {
-        PrepareDllFile();
-    }
-
     [DllImport(Constants.TEGRA_SWIZZLE_DLL_NAME, EntryPoint = "deswizzle_block_linear")]
-    private static extern unsafe void DeswizzleBlockLinearX64(ulong width, ulong height, ulong depth, byte* source, ulong sourceLength, byte[] destination, ulong destinationLength, ulong blockHeight, ulong bytesPerPixel);
+    private static extern unsafe void DeswizzleBlockLinearX64(ulong width, ulong height, ulong depth, byte* source,
+        ulong sourceLength, byte[] destination, ulong destinationLength, ulong blockHeight, ulong bytesPerPixel);
 
     [DllImport(Constants.TEGRA_SWIZZLE_DLL_NAME, EntryPoint = "swizzled_surface_size")]
-    private static extern ulong GetSurfaceSizeX64(ulong width, ulong height, ulong depth, ulong blockHeight, ulong bytesPerPixel);
+    private static extern ulong GetSurfaceSizeX64(ulong width, ulong height, ulong depth, ulong blockHeight,
+        ulong bytesPerPixel);
 
     [DllImport(Constants.TEGRA_SWIZZLE_DLL_NAME, EntryPoint = "block_height_mip0")]
     private static extern ulong BlockHeightMip0X64(ulong height);
 
     [DllImport(Constants.TEGRA_SWIZZLE_DLL_NAME, EntryPoint = "mip_block_height")]
     private static extern ulong MipBlockHeightX64(ulong mipHeight, ulong blockHeightMip0);
-
-    private static void PrepareDllFile()
-    {
-        string dllStream;
-        string dllFile;
-        
-        if (OperatingSystem.IsWindows())
-        {
-            dllStream = "CUE4Parse_Conversion.Resources.tegra_swizzle_x64.dll";
-            dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME + ".dll";
-        }
-        else
-        {
-            if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
-            {
-                dllStream = "CUE4Parse_Conversion.Resources.tegra_swizzle.arm64.so";
-                dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME;
-            }
-            else
-            {
-                dllStream = "CUE4Parse_Conversion.Resources.tegra_swizzle.x64.so";
-                dllFile = Constants.TEGRA_SWIZZLE_DLL_NAME;
-            }
-        }
-        
-        dllFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), dllFile);
-            
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(dllStream);
-        if (stream == null)
-            throw new MissingManifestResourceException("Couldn't find tegra_swizzle_x64.dll in Embedded Resources");
-        var ba = new byte[(int) stream.Length];
-        _ = stream.Read(ba, 0, (int) stream.Length);
-
-        bool fileOk;
-
-        using (var sha1 = SHA1.Create())
-        {
-            var fileHash = BitConverter.ToString(sha1.ComputeHash(ba)).Replace("-", string.Empty);
-
-            if (File.Exists(dllFile))
-            {
-                var bb = File.ReadAllBytes(dllFile);
-                var fileHash2 = BitConverter.ToString(sha1.ComputeHash(bb)).Replace("-", string.Empty);
-
-                fileOk = fileHash == fileHash2;
-            }
-            else
-            {
-                fileOk = false;
-            }
-        }
-
-        if (!fileOk)
-        {
-            File.WriteAllBytes(dllFile, ba);
-        }
-    }
 
     public static byte[] GetDeswizzledData(byte[] data, FTexture2DMipMap mip, FPixelFormatInfo formatInfo)
     {
@@ -134,12 +70,15 @@ public static class PlatformDeswizzlers
         var unpaddedTextureData = new byte[heightInBlocks * unpaddedRowSize];
         for (var rowIndex = 0; rowIndex < heightInBlocks; rowIndex++)
         {
-            Array.Copy(textureData, rowIndex * rowSize, unpaddedTextureData, rowIndex * unpaddedRowSize, unpaddedRowSize);
+            Array.Copy(textureData, rowIndex * rowSize, unpaddedTextureData, rowIndex * unpaddedRowSize,
+                unpaddedRowSize);
         }
+
         return unpaddedTextureData;
     }
 
-    private static unsafe byte[] DeswizzleBlockLinear(int width, int height, int depth, FPixelFormatInfo formatInfo, int blockHeight, byte[] data)
+    private static unsafe byte[] DeswizzleBlockLinear(int width, int height, int depth, FPixelFormatInfo formatInfo,
+        int blockHeight, byte[] data)
     {
         width = formatInfo.GetBlockCountForWidth(width);
         height = formatInfo.GetBlockCountForHeight(height);
@@ -148,7 +87,8 @@ public static class PlatformDeswizzlers
 
         fixed (byte* ptr = data)
         {
-            DeswizzleBlockLinearX64((ulong) width, (ulong) height, (ulong) depth, ptr, (ulong) data.Length, output, (ulong) output.Length, (ulong) blockHeight, (ulong) formatInfo.BlockBytes);
+            DeswizzleBlockLinearX64((ulong)width, (ulong)height, (ulong)depth, ptr, (ulong)data.Length, output,
+                (ulong)output.Length, (ulong)blockHeight, (ulong)formatInfo.BlockBytes);
         }
 
         return output;

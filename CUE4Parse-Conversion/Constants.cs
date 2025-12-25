@@ -25,5 +25,5 @@ public class Constants
     public const float Byte_Bone_Scale = 1.0f / byte.MaxValue;
     public const float UShort_Bone_Scale = 1.0f / ushort.MaxValue;
 
-    public const string TEGRA_SWIZZLE_DLL_NAME = "tegra_swizzle_x64";
+    public const string TEGRA_SWIZZLE_DLL_NAME = "tegra_swizzle";
 }
