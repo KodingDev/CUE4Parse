@@ -1,4 +1,7 @@
 using System;
+using System.Buffers;
+using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
 using CUE4Parse.UE4.VirtualFileSystem;
 
 namespace CUE4Parse.GameTypes.NetEase.MAR.Encryption.Aes;
@@ -430,22 +433,19 @@ public static class MarvelAes
         /* for 128-bit blocks, Rijndael never uses more than 10 rcon values */
     ];
 
-    private static uint GETU32(Span<byte> plaintext) => (uint) (plaintext[3] << 24 | plaintext[2] << 16 | plaintext[1] << 8 | plaintext[0]);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static uint GETU32(ReadOnlySpan<byte> plaintext) => BinaryPrimitives.ReadUInt32LittleEndian(plaintext);
 
-    private static void PUTU32(Span<byte> plaintext, uint st)
-    {
-        plaintext[3] = (byte) (st >> 24);
-        plaintext[2] = (byte) (st >> 16);
-        plaintext[1] = (byte) (st >> 8);
-        plaintext[0] = (byte) st;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void PUTU32(Span<byte> plaintext, uint st) => BinaryPrimitives.WriteUInt32LittleEndian(plaintext, st);
 
     /**
      * Expand the cipher key into the encryption key schedule.
      *
      * @return the number of rounds for the given cipher key size.
      */
-    private static int rijndaelSetupEncrypt(Span<uint> rk, Span<byte> key, int keybits)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int rijndaelSetupEncrypt(Span<uint> rk, ReadOnlySpan<byte> key, int keybits)
     {
         var i = 0;
         uint temp;
@@ -546,7 +546,8 @@ public static class MarvelAes
      *
      * @return the number of rounds for the given cipher key size.
      */
-    private static int rijndaelSetupDecrypt(Span<uint> rk, Span<byte> key, int keybits)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int rijndaelSetupDecrypt(Span<uint> rk, ReadOnlySpan<byte> key, int keybits)
     {
         int i, j;
 
@@ -602,7 +603,8 @@ public static class MarvelAes
         return nrounds;
     }
 
-    private static void rijndaelDecrypt(Span<uint> rk, int nrounds, Span<byte> ciphertext, Span<byte> plaintext)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void rijndaelDecrypt(Span<uint> rk, int nrounds, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext)
     {
         /*
          * map byte array block to cipher state
@@ -732,19 +734,29 @@ public static class MarvelAes
         if (reader.AesKey == null)
             throw new NullReferenceException("reader.AesKey");
 
-        var ciphertext = bytes[beginOffset..];
+        var ciphertext = bytes.AsSpan(beginOffset);
         var plaintext = new byte[count];
+        var plaintextSpan = plaintext.AsSpan();
 
         var key = reader.AesKey.Key;
-        var rk = new uint[RKLENGTH(AES_KEYBITS)];
+        var rkLength = RKLENGTH(AES_KEYBITS);
+        var rk = ArrayPool<uint>.Shared.Rent(rkLength);
 
-        var nrounds = rijndaelSetupDecrypt(rk, key, AES_KEYBITS);
-
-        for (var offset = 0; offset < count; offset += AES_BLOCKBYTES)
+        try
         {
-            rijndaelDecrypt(rk, nrounds, ciphertext.AsSpan()[offset..], plaintext.AsSpan()[offset..]);
-        }
+            var rkSpan = rk.AsSpan(0, rkLength);
+            var nrounds = rijndaelSetupDecrypt(rkSpan, key, AES_KEYBITS);
 
-        return plaintext;
+            for (var offset = 0; offset < count; offset += AES_BLOCKBYTES)
+            {
+                rijndaelDecrypt(rkSpan, nrounds, ciphertext.Slice(offset), plaintextSpan.Slice(offset));
+            }
+
+            return plaintext;
+        }
+        finally
+        {
+            ArrayPool<uint>.Shared.Return(rk);
+        }
     }
 }
