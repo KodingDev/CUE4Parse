@@ -34,11 +34,11 @@
 
   <!-- Detex natives -->
   <ItemGroup>
-    <None Include="Resources\detex\detex-windows-x86_64\libdetex.dll">
+    <None Include="Resources\detex\detex-windows-x86_64\detex.dll">
       <Pack>true</Pack>
       <PackagePath>runtimes/win-x64/native</PackagePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>runtimes/win-x64/native/libdetex.dll</TargetPath>
+      <TargetPath>runtimes/win-x64/native/detex.dll</TargetPath>
     </None>
     <None Include="Resources\detex\detex-linux-x86_64\libdetex.so">
       <Pack>true</Pack>

@@ -19,7 +19,7 @@ internal unsafe struct detexTexture
 /// </summary>
 public unsafe class Detex
 {
-    private const string DLL_NAME = "libdetex";
+    private const string DLL_NAME = "detex";
 
     [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
