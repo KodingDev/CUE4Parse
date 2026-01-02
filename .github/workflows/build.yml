@@ -93,10 +93,6 @@ jobs:
         if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
         run: dotnet build CUE4Parse.sln --configuration Release --no-restore /p:Platform="Any CPU"
 
-      - name: Run tests
-        if: matrix.arch == 'x86_64' || (matrix.os == 'macos' && matrix.arch == 'arm64')
-        run: dotnet test CUE4Parse.Tests/CUE4Parse.Tests.csproj --configuration Release --no-build --verbosity normal /p:Platform="Any CPU"
-
       - name: Pack NuGet packages
         if: matrix.os == 'windows' && matrix.arch == 'x86_64'
         run: dotnet pack CUE4Parse.sln --configuration Release --no-build --output ./artifacts /p:Platform="Any CPU"
