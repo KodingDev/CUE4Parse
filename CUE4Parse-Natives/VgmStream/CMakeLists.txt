@@ -50,6 +50,14 @@ if(WIN32)
         _WIN32_WINNT=0x501
         _CRT_SECURE_NO_WARNINGS
     )
+    # Suppress common MSVC warnings in vgmstream code
+    if(MSVC)
+        target_compile_options(libvgmstream PRIVATE
+            /wd4267  # conversion from 'size_t' to 'type', possible loss of data
+            /wd4244  # conversion from 'type1' to 'type2', possible loss of data
+            /wd4018  # signed/unsigned mismatch
+        )
+    endif()
 endif()
 
 # Enable vgmstream features based on available libraries
