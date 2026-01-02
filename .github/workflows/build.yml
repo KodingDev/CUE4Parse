@@ -79,7 +79,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Restore dependencies
-        run: dotnet restore CUE4Parse.sln
+        run: dotnet restore CUE4Parse.sln /p:Platform="Any CPU"
 
       - name: Build (Linux ARM64 cross-compile)
         if: matrix.os == 'linux' && matrix.arch == 'aarch64'
