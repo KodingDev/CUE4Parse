@@ -10,6 +10,11 @@ extern "C" {
 #include <string.h>
 #include <stdio.h>
 
+// Suppress strncpy warning on MSVC
+#ifdef _MSC_VER
+#pragma warning(disable: 4996)
+#endif
+
 // Memory streamfile implementation
 typedef struct {
     const uint8_t* data;
