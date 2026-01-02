@@ -87,11 +87,11 @@ jobs:
           # Set cross-compilation environment
           export CMAKE_C_COMPILER=aarch64-linux-gnu-gcc
           export CMAKE_CXX_COMPILER=aarch64-linux-gnu-g++
-          dotnet build CUE4Parse.sln --configuration Release --no-restore
+          dotnet build CUE4Parse.sln --configuration Release --no-restore /p:Platform="Any CPU"
 
       - name: Build
         if: ${{ !(matrix.os == 'linux' && matrix.arch == 'aarch64') }}
-        run: dotnet build CUE4Parse.sln --configuration Release --no-restore
+        run: dotnet build CUE4Parse.sln --configuration Release --no-restore /p:Platform="Any CPU"
 
       - name: Run tests
         if: matrix.arch == 'x86_64' || (matrix.os == 'macos' && matrix.arch == 'arm64')
