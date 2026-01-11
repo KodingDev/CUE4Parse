@@ -20,9 +20,9 @@ if (EXISTS "${PROJECT_SOURCE_DIR}/Oodle/external/oodle2/core")
     set(WITH_Oodle 1)
 endif()
 
-#if (EXISTS "${PROJECT_SOURCE_DIR}/VgmStream/external/vgmstream/src")
-#    set(WITH_VgmStream 1)
-#endif()
+if (EXISTS "${PROJECT_SOURCE_DIR}/VgmStream/external/vgmstream/src")
+    set(WITH_VgmStream 1)
+endif()
 
 # ACL
 if (WITH_ACL)
