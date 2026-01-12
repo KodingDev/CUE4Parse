@@ -88,7 +88,8 @@ public class LandscapeExporter : ExporterBase
             {
                 string weightMapPath = $"{path}/{kv.Key}.png";
                 var weightMap = kv.Value;
-                var imageData = weightMap.Encode(SKEncodedImageFormat.Png, 100).ToArray();
+                using var encodedData = weightMap.Encode(SKEncodedImageFormat.Png, 100);
+                var imageData = encodedData.ToArray();
                 final.Add(new Mesh(weightMapPath, imageData, new List<MaterialExporter2>()));
             }
         }
@@ -108,6 +109,18 @@ public class LandscapeExporter : ExporterBase
         final.Add(new Mesh($"{path}/Guid_{LandscapeGuid}", Encoding.UTF8.GetBytes(LandscapeGuid.ToString()), []));
 
         _processedFiles = final.ToArray();
+
+        foreach (var image in heightMaps.Values)
+        {
+            image.Dispose();
+        }
+        heightMaps.Clear();
+
+        foreach (var bitmap in weightMaps.Values)
+        {
+            bitmap.Dispose();
+        }
+
         weightMaps.Clear();
         final.Clear();
     }
