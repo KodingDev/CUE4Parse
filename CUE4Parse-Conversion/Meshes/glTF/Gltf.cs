@@ -11,9 +11,9 @@ using CUE4Parse.UE4.Objects.Meshes;
 using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Writers;
 using CUE4Parse.Utils;
+using System.Text.Json.Nodes;
 using SharpGLTF.Geometry;
 using SharpGLTF.Geometry.VertexTypes;
-using SharpGLTF.IO;
 using SharpGLTF.Materials;
 using SharpGLTF.Scenes;
 using SharpGLTF.Schema2;
@@ -76,7 +76,7 @@ namespace CUE4Parse_Conversion.Meshes.glTF
                 }
 
                 targetNames += "]}";
-                mesh.Extras = (JsonContent) targetNames;
+                mesh.Extras = JsonNode.Parse(targetNames);
             }
 
             var sceneBuilder = new SceneBuilder();

@@ -11,18 +11,16 @@ namespace CUE4Parse_Conversion.Meshes.glTF
         public int MaxColors => 1; // Do we need more?
         public int MaxTextCoords => Constants.MAX_MESH_UV_SETS;
 
-        [VertexAttribute("COLOR_0", EncodingType.UNSIGNED_BYTE, true)]
         public Vector4 Color;
 
-        // public List<Vector2> TexCoords;
-        [VertexAttribute("TEXCOORD_0")] public Vector2 TexCoord0;
-        [VertexAttribute("TEXCOORD_1")] public Vector2 TexCoord1;
-        [VertexAttribute("TEXCOORD_2")] public Vector2 TexCoord2;
-        [VertexAttribute("TEXCOORD_3")] public Vector2 TexCoord3;
-        [VertexAttribute("TEXCOORD_4")] public Vector2 TexCoord4;
-        [VertexAttribute("TEXCOORD_5")] public Vector2 TexCoord5;
-        [VertexAttribute("TEXCOORD_6")] public Vector2 TexCoord6;
-        [VertexAttribute("TEXCOORD_7")] public Vector2 TexCoord7;
+        public Vector2 TexCoord0;
+        public Vector2 TexCoord1;
+        public Vector2 TexCoord2;
+        public Vector2 TexCoord3;
+        public Vector2 TexCoord4;
+        public Vector2 TexCoord5;
+        public Vector2 TexCoord6;
+        public Vector2 TexCoord7;
 
         public VertexColorXTextureX(Vector4 color, List<Vector2> texCoords)
         {
@@ -91,6 +89,41 @@ namespace CUE4Parse_Conversion.Meshes.glTF
             else if (size < list.Count)
                 while (list.Count - size > 0)
                     list.RemoveAt(list.Count-1);
+        }
+
+        IEnumerable<KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>> IVertexReflection.GetEncodingAttributes()
+        {
+            yield return new KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>("COLOR_0", new SharpGLTF.Memory.AttributeFormat(DimensionType.VEC4, EncodingType.UNSIGNED_BYTE, true));
+            yield return new KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>("TEXCOORD_0", new SharpGLTF.Memory.AttributeFormat(DimensionType.VEC2));
+            yield return new KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>("TEXCOORD_1", new SharpGLTF.Memory.AttributeFormat(DimensionType.VEC2));
+            yield return new KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>("TEXCOORD_2", new SharpGLTF.Memory.AttributeFormat(DimensionType.VEC2));
+            yield return new KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>("TEXCOORD_3", new SharpGLTF.Memory.AttributeFormat(DimensionType.VEC2));
+            yield return new KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>("TEXCOORD_4", new SharpGLTF.Memory.AttributeFormat(DimensionType.VEC2));
+            yield return new KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>("TEXCOORD_5", new SharpGLTF.Memory.AttributeFormat(DimensionType.VEC2));
+            yield return new KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>("TEXCOORD_6", new SharpGLTF.Memory.AttributeFormat(DimensionType.VEC2));
+            yield return new KeyValuePair<string, SharpGLTF.Memory.AttributeFormat>("TEXCOORD_7", new SharpGLTF.Memory.AttributeFormat(DimensionType.VEC2));
+        }
+
+        public VertexMaterialDelta Subtract(IVertexMaterial baseValue)
+        {
+            var baseColor = baseValue.MaxColors > 0 ? baseValue.GetColor(0) : Vector4.Zero;
+            var baseTC0 = baseValue.MaxTextCoords > 0 ? baseValue.GetTexCoord(0) : Vector2.Zero;
+            var baseTC1 = baseValue.MaxTextCoords > 1 ? baseValue.GetTexCoord(1) : Vector2.Zero;
+            var baseTC2 = baseValue.MaxTextCoords > 2 ? baseValue.GetTexCoord(2) : Vector2.Zero;
+            var baseTC3 = baseValue.MaxTextCoords > 3 ? baseValue.GetTexCoord(3) : Vector2.Zero;
+
+            return new VertexMaterialDelta(
+                Color - baseColor, Vector4.Zero,
+                TexCoord0 - baseTC0, TexCoord1 - baseTC1, TexCoord2 - baseTC2, TexCoord3 - baseTC3);
+        }
+
+        public void Add(in VertexMaterialDelta delta)
+        {
+            Color += delta.Color0Delta;
+            TexCoord0 += delta.TexCoord0Delta;
+            TexCoord1 += delta.TexCoord1Delta;
+            TexCoord2 += delta.TexCoord2Delta;
+            TexCoord3 += delta.TexCoord3Delta;
         }
 
         public bool Equals(VertexColorXTextureX other)
