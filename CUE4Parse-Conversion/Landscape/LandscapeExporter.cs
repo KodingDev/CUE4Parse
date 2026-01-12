@@ -99,10 +99,9 @@ public class LandscapeExporter : ExporterBase
             foreach (var kv in heightMaps)
             {
                 string heightMapPath = $"{path}/{kv.Key}.png";
-                var stream = new MemoryStream();
+                using var stream = new MemoryStream();
                 kv.Value.Save(stream, new PngEncoder());
-                final.Add(new Mesh(heightMapPath, stream.GetBuffer(), new List<MaterialExporter2>()));
-                stream.Dispose();
+                final.Add(new Mesh(heightMapPath, stream.ToArray(), new List<MaterialExporter2>()));
             }
         }
 

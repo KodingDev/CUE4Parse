@@ -119,15 +119,21 @@ public static class TextureEncoder
         if (convertedDataPtr == nint.Zero)
             throw new Exception("Failed to convert texture data to RGBE format.");
 
-        using var stream = new MemoryStream();
+        try
+        {
+            using var stream = new MemoryStream();
 
-        WriteHdrHeader(stream, texture.Width, texture.Height);
+            WriteHdrHeader(stream, texture.Width, texture.Height);
 
-        for (int y = 0; y < texture.Height; y++)
-            WriteScanlineRLE(stream, convertedDataPtr, texture.Width, y * texture.Width * 4);
+            for (int y = 0; y < texture.Height; y++)
+                WriteScanlineRLE(stream, convertedDataPtr, texture.Width, y * texture.Width * 4);
 
-        MemoryUtils.NativeFree(convertedDataPtr);
-        return stream.ToArray();
+            return stream.ToArray();
+        }
+        finally
+        {
+            MemoryUtils.NativeFree(convertedDataPtr);
+        }
     }
 
     private static void WriteHdrHeader(Stream stream, int width, int height)
