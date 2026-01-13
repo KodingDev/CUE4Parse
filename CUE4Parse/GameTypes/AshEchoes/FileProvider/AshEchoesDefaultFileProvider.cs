@@ -293,25 +293,37 @@ public class AEPakFileReader : AbstractAesVfsReader
         if (entry is not FAEPakEntry pakEntry || entry.Vfs != this) throw new ArgumentException($"Wrong pak file reader, required {entry.Vfs.Name}, this is {Name}");
         // If this reader is used as a concurrent reader create a clone of the main reader to provide thread safety
         var reader = IsConcurrent ? (FArchive) Ar.Clone() : Ar;
-        if (pakEntry.IsCompressed)
+        var isClonedReader = IsConcurrent;
+
+        try
         {
-            var uncompressed = new byte[(int) pakEntry.UncompressedSize];
-            var uncompressedOff = 0;
-            foreach (var block in pakEntry.CompressionBlocks)
+            if (pakEntry.IsCompressed)
             {
-                var blockSize = (int) block.Size;
-                var compressed = ReadAndDecryptAt(block.CompressedStart, blockSize, reader, pakEntry.IsEncrypted);
-                var uncompressedSize = BitConverter.ToInt32(compressed, 0);
-                Decompress(compressed, 4, blockSize - 4, uncompressed, uncompressedOff, uncompressedSize, pakEntry.CompressionMethod);
-                uncompressedOff += uncompressedSize;
+                var uncompressed = new byte[(int) pakEntry.UncompressedSize];
+                var uncompressedOff = 0;
+                foreach (var block in pakEntry.CompressionBlocks)
+                {
+                    var blockSize = (int) block.Size;
+                    var compressed = ReadAndDecryptAt(block.CompressedStart, blockSize, reader, pakEntry.IsEncrypted);
+                    var uncompressedSize = BitConverter.ToInt32(compressed, 0);
+                    Decompress(compressed, 4, blockSize - 4, uncompressed, uncompressedOff, uncompressedSize, pakEntry.CompressionMethod);
+                    uncompressedOff += uncompressedSize;
+                }
+
+                return uncompressed;
             }
 
-            return uncompressed;
+            var size = (int) pakEntry.UncompressedSize;
+            var data = ReadAndDecryptAt(pakEntry.Offset, size, reader, pakEntry.IsEncrypted);
+            return data;
         }
-
-        var size = (int) pakEntry.UncompressedSize;
-        var data = ReadAndDecryptAt(pakEntry.Offset, size, reader, pakEntry.IsEncrypted);
-        return data;
+        finally
+        {
+            if (isClonedReader)
+            {
+                reader.Dispose();
+            }
+        }
     }
 
     public override void Dispose()

@@ -77,104 +77,117 @@ namespace CUE4Parse.UE4.Pak
             if (entry is not FPakEntry pakEntry || entry.Vfs != this) throw new ArgumentException($"Wrong pak file reader, required {entry.Vfs.Name}, this is {Name}");
             // If this reader is used as a concurrent reader create a clone of the main reader to provide thread safety
             var reader = IsConcurrent ? (FArchive) Ar.Clone() : Ar;
-            var alignment = pakEntry.IsEncrypted ? Aes.ALIGN : 1;
+            var isClonedReader = IsConcurrent;
 
-            var offset = 0;
-            var requestedSize = (int) pakEntry.UncompressedSize;
-            if (header is { } bulk)
+            try
             {
-                offset = (int) bulk.OffsetInFile;
-                requestedSize = bulk.ElementCount;
-            }
+                var alignment = pakEntry.IsEncrypted ? Aes.ALIGN : 1;
 
-            if (pakEntry.IsCompressed)
-            {
+                var offset = 0;
+                var requestedSize = (int) pakEntry.UncompressedSize;
+                if (header is { } bulk)
+                {
+                    offset = (int) bulk.OffsetInFile;
+                    requestedSize = bulk.ElementCount;
+                }
+
+                if (pakEntry.IsCompressed)
+                {
 #if DEBUG
-                Log.Debug("{EntryName} is compressed with {CompressionMethod}", pakEntry.Name, pakEntry.CompressionMethod);
+                    Log.Debug("{EntryName} is compressed with {CompressionMethod}", pakEntry.Name, pakEntry.CompressionMethod);
 #endif
+                    switch (Game)
+                    {
+                        case EGame.GAME_MarvelRivals or EGame.GAME_OperationApocalypse or EGame.GAME_WutheringWaves or EGame.GAME_MindsEye:
+                            return NetEaseCompressedExtract(reader, pakEntry);
+                        case EGame.GAME_GameForPeace:
+                            return GameForPeaceExtract(reader, pakEntry);
+                        case EGame.GAME_Rennsport:
+                            return RennsportCompressedExtract(reader, pakEntry);
+                        case EGame.GAME_DragonQuestXI:
+                            return DQXIExtract(reader, pakEntry);
+                        case EGame.GAME_ArenaBreakoutInfinite:
+                            return ABIExtract(reader, pakEntry);
+                    }
+
+                    var compressionBlockSize = (int) pakEntry.CompressionBlockSize;
+                    var firstBlockIndex = offset / compressionBlockSize;
+                    var lastBlockIndex = (offset + requestedSize - 1) / compressionBlockSize;
+
+                    // blocks are full size, except potentially the last one
+                    var numBlocks = lastBlockIndex - firstBlockIndex + 1;
+                    var bufferSize = numBlocks * compressionBlockSize;
+                    if (lastBlockIndex == (int)((pakEntry.UncompressedSize - 1) / compressionBlockSize))
+                    {
+                        var lastBlockInFileSize = (int)(pakEntry.UncompressedSize % compressionBlockSize);
+                        if (lastBlockInFileSize > 0)
+                            bufferSize -= compressionBlockSize - lastBlockInFileSize;
+                    }
+
+                    var uncompressed = new byte[bufferSize];
+                    var uncompressedOff = 0;
+
+                    // decompress the required blocks
+                    for (var blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++)
+                    {
+                        var block = pakEntry.CompressionBlocks[blockIndex];
+                        var blockSize = (int) block.Size;
+                        var srcSize = blockSize.Align(alignment);
+                        // Read the compressed block
+                        var compressed = ReadAndDecryptAt(block.CompressedStart, srcSize, reader, pakEntry.IsEncrypted);
+                        // Calculate the uncompressed size,
+                        // its either just the compression block size,
+                        // or if it's the last block, it's the remaining data size
+                        var uncompressedSize = (int) Math.Min(compressionBlockSize, pakEntry.UncompressedSize - blockIndex * compressionBlockSize);
+                        Decompress(compressed, 0, blockSize, uncompressed, uncompressedOff, uncompressedSize, pakEntry.CompressionMethod);
+                        uncompressedOff += uncompressedSize;
+                    }
+
+                    var offsetInFirstBlock = offset - firstBlockIndex * compressionBlockSize;
+                    if (offsetInFirstBlock == 0 && requestedSize == bufferSize)
+                        return uncompressed;
+
+                    var result = new byte[requestedSize];
+                    Array.Copy(uncompressed, offsetInFirstBlock, result, 0, requestedSize);
+                    return result;
+                }
+
                 switch (Game)
                 {
                     case EGame.GAME_MarvelRivals or EGame.GAME_OperationApocalypse or EGame.GAME_WutheringWaves or EGame.GAME_MindsEye:
-                        return NetEaseCompressedExtract(reader, pakEntry);
-                    case EGame.GAME_GameForPeace:
-                        return GameForPeaceExtract(reader, pakEntry);
+                        return NetEaseExtract(reader, pakEntry);
                     case EGame.GAME_Rennsport:
-                        return RennsportCompressedExtract(reader, pakEntry);
+                        return RennsportExtract(reader, pakEntry);
                     case EGame.GAME_DragonQuestXI:
                         return DQXIExtract(reader, pakEntry);
                     case EGame.GAME_ArenaBreakoutInfinite:
                         return ABIExtract(reader, pakEntry);
                 }
 
-                var compressionBlockSize = (int) pakEntry.CompressionBlockSize;
-                var firstBlockIndex = offset / compressionBlockSize;
-                var lastBlockIndex = (offset + requestedSize - 1) / compressionBlockSize;
+                // Pak Entry is written before the file data,
+                // but it's the same as the one from the index, just without a name
+                // We don't need to serialize that again so + file.StructSize
 
-                // blocks are full size, except potentially the last one
-                var numBlocks = lastBlockIndex - firstBlockIndex + 1;
-                var bufferSize = numBlocks * compressionBlockSize;
-                if (lastBlockIndex == (int)((pakEntry.UncompressedSize - 1) / compressionBlockSize))
-                {
-                    var lastBlockInFileSize = (int)(pakEntry.UncompressedSize % compressionBlockSize);
-                    if (lastBlockInFileSize > 0)
-                        bufferSize -= compressionBlockSize - lastBlockInFileSize;
-                }
+                var readOffset = offset.Align(alignment);
+                var dataOffset = offset - readOffset;
+                var readSize = (dataOffset + requestedSize).Align(alignment);
+                var data = ReadAndDecryptAt(pakEntry.Offset + pakEntry.StructSize + readOffset, readSize, reader, pakEntry.IsEncrypted);
 
-                var uncompressed = new byte[bufferSize];
-                var uncompressedOff = 0;
+                if (dataOffset == 0 && requestedSize == data.Length)
+                    return data;
 
-                // decompress the required blocks
-                for (var blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++)
-                {
-                    var block = pakEntry.CompressionBlocks[blockIndex];
-                    var blockSize = (int) block.Size;
-                    var srcSize = blockSize.Align(alignment);
-                    // Read the compressed block
-                    var compressed = ReadAndDecryptAt(block.CompressedStart, srcSize, reader, pakEntry.IsEncrypted);
-                    // Calculate the uncompressed size,
-                    // its either just the compression block size,
-                    // or if it's the last block, it's the remaining data size
-                    var uncompressedSize = (int) Math.Min(compressionBlockSize, pakEntry.UncompressedSize - blockIndex * compressionBlockSize);
-                    Decompress(compressed, 0, blockSize, uncompressed, uncompressedOff, uncompressedSize, pakEntry.CompressionMethod);
-                    uncompressedOff += uncompressedSize;
-                }
-
-                var offsetInFirstBlock = offset - firstBlockIndex * compressionBlockSize;
-                if (offsetInFirstBlock == 0 && requestedSize == bufferSize)
-                    return uncompressed;
-
-                var result = new byte[requestedSize];
-                Array.Copy(uncompressed, offsetInFirstBlock, result, 0, requestedSize);
-                return result;
+                var chunk = new byte[requestedSize];
+                Array.Copy(data, dataOffset, chunk, 0, requestedSize);
+                return chunk;
             }
-
-            switch (Game)
+            finally
             {
-                case EGame.GAME_MarvelRivals or EGame.GAME_OperationApocalypse or EGame.GAME_WutheringWaves or EGame.GAME_MindsEye:
-                    return NetEaseExtract(reader, pakEntry);
-                case EGame.GAME_Rennsport:
-                    return RennsportExtract(reader, pakEntry);
-                case EGame.GAME_DragonQuestXI:
-                    return DQXIExtract(reader, pakEntry);
-                case EGame.GAME_ArenaBreakoutInfinite:
-                    return ABIExtract(reader, pakEntry);
+                // Dispose the cloned reader to release file handles
+                if (isClonedReader)
+                {
+                    reader.Dispose();
+                }
             }
-
-            // Pak Entry is written before the file data,
-            // but it's the same as the one from the index, just without a name
-            // We don't need to serialize that again so + file.StructSize
-
-            var readOffset = offset.Align(alignment);
-            var dataOffset = offset - readOffset;
-            var readSize = (dataOffset + requestedSize).Align(alignment);
-            var data = ReadAndDecryptAt(pakEntry.Offset + pakEntry.StructSize + readOffset, readSize, reader, pakEntry.IsEncrypted);
-
-            if (dataOffset == 0 && requestedSize == data.Length)
-                return data;
-
-            var chunk = new byte[requestedSize];
-            Array.Copy(data, dataOffset, chunk, 0, requestedSize);
-            return chunk;
         }
 
         public override void Mount(StringComparer pathComparer)
@@ -441,9 +454,21 @@ namespace CUE4Parse.UE4.Pak
         public override byte[] MountPointCheckBytes()
         {
             var reader = IsConcurrent ? (FArchive) Ar.Clone() : Ar;
-            reader.Position = Info.IndexOffset;
-            var size = Math.Min((int) Info.IndexSize, 4 + MAX_MOUNTPOINT_TEST_LENGTH * 2);
-            return reader.ReadBytes(size.Align(Aes.ALIGN));
+            var isClonedReader = IsConcurrent;
+
+            try
+            {
+                reader.Position = Info.IndexOffset;
+                var size = Math.Min((int) Info.IndexSize, 4 + MAX_MOUNTPOINT_TEST_LENGTH * 2);
+                return reader.ReadBytes(size.Align(Aes.ALIGN));
+            }
+            finally
+            {
+                if (isClonedReader)
+                {
+                    reader.Dispose();
+                }
+            }
         }
 
         public override void Dispose()

@@ -239,61 +239,75 @@ public partial class IoStoreReader : AbstractAesVfsReader
 
         FArchive?[]? clonedReaders = null;
 
-        for (int blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++)
+        try
         {
-            ref var compressionBlock = ref TocResource.CompressionBlocks[blockIndex];
-
-            var rawSize = compressionBlock.CompressedSize.Align(Aes.ALIGN);
-            if (compressedBuffer.Length < rawSize)
+            for (int blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++)
             {
-                //Console.WriteLine($"{chunkId}: block {blockIndex} CompressedBuffer size: {rawSize} - Had to create copy");
-                compressedBuffer = new byte[rawSize];
-            }
+                ref var compressionBlock = ref TocResource.CompressionBlocks[blockIndex];
 
-            var partitionIndex = (int) ((ulong) compressionBlock.Offset / TocResource.Header.PartitionSize);
-            var partitionOffset = (long) ((ulong) compressionBlock.Offset % TocResource.Header.PartitionSize);
-            FArchive reader;
-            if (IsConcurrent)
-            {
-                clonedReaders ??= new FArchive?[ContainerStreams.Count];
-                ref var clone = ref clonedReaders[partitionIndex];
-                clone ??= (FArchive) ContainerStreams[partitionIndex].Clone();
-                reader = clone;
-            }
-            else reader = ContainerStreams[partitionIndex];
-
-            reader.ReadAt(partitionOffset, compressedBuffer, 0, (int) rawSize);
-            // FragPunk decided to encrypt the global utoc too.
-            compressedBuffer = DecryptIfEncrypted(compressedBuffer, 0, (int) rawSize, IsEncrypted, Game == EGame.GAME_FragPunk && Path.Contains("global", StringComparison.Ordinal));
-
-            byte[] src;
-            if (compressionBlock.CompressionMethodIndex == 0)
-            {
-                src = compressedBuffer;
-            }
-            else
-            {
-                var uncompressedSize = compressionBlock.UncompressedSize;
-                if (uncompressedBuffer.Length < uncompressedSize)
+                var rawSize = compressionBlock.CompressedSize.Align(Aes.ALIGN);
+                if (compressedBuffer.Length < rawSize)
                 {
-                    //Console.WriteLine($"{chunkId}: block {blockIndex} UncompressedBuffer size: {uncompressedSize} - Had to create copy");
-                    uncompressedBuffer = new byte[uncompressedSize];
+                    //Console.WriteLine($"{chunkId}: block {blockIndex} CompressedBuffer size: {rawSize} - Had to create copy");
+                    compressedBuffer = new byte[rawSize];
                 }
 
-                var compressionMethod = TocResource.CompressionMethods[compressionBlock.CompressionMethodIndex];
-                Compression.Compression.Decompress(compressedBuffer, 0, (int)compressionBlock.CompressedSize, uncompressedBuffer, 0,
-                    (int) uncompressedSize, compressionMethod, reader);
-                src = uncompressedBuffer;
+                var partitionIndex = (int) ((ulong) compressionBlock.Offset / TocResource.Header.PartitionSize);
+                var partitionOffset = (long) ((ulong) compressionBlock.Offset % TocResource.Header.PartitionSize);
+                FArchive reader;
+                if (IsConcurrent)
+                {
+                    clonedReaders ??= new FArchive?[ContainerStreams.Count];
+                    ref var clone = ref clonedReaders[partitionIndex];
+                    clone ??= (FArchive) ContainerStreams[partitionIndex].Clone();
+                    reader = clone;
+                }
+                else reader = ContainerStreams[partitionIndex];
+
+                reader.ReadAt(partitionOffset, compressedBuffer, 0, (int) rawSize);
+                // FragPunk decided to encrypt the global utoc too.
+                compressedBuffer = DecryptIfEncrypted(compressedBuffer, 0, (int) rawSize, IsEncrypted, Game == EGame.GAME_FragPunk && Path.Contains("global", StringComparison.Ordinal));
+
+                byte[] src;
+                if (compressionBlock.CompressionMethodIndex == 0)
+                {
+                    src = compressedBuffer;
+                }
+                else
+                {
+                    var uncompressedSize = compressionBlock.UncompressedSize;
+                    if (uncompressedBuffer.Length < uncompressedSize)
+                    {
+                        //Console.WriteLine($"{chunkId}: block {blockIndex} UncompressedBuffer size: {uncompressedSize} - Had to create copy");
+                        uncompressedBuffer = new byte[uncompressedSize];
+                    }
+
+                    var compressionMethod = TocResource.CompressionMethods[compressionBlock.CompressionMethodIndex];
+                    Compression.Compression.Decompress(compressedBuffer, 0, (int)compressionBlock.CompressedSize, uncompressedBuffer, 0,
+                        (int) uncompressedSize, compressionMethod, reader);
+                    src = uncompressedBuffer;
+                }
+
+                var sizeInBlock = (int) Math.Min(compressionBlockSize - offsetInBlock, remainingSize);
+                Buffer.BlockCopy(src, (int) offsetInBlock, dst, dstOffset, sizeInBlock);
+                offsetInBlock = 0;
+                remainingSize -= sizeInBlock;
+                dstOffset += sizeInBlock;
             }
 
-            var sizeInBlock = (int) Math.Min(compressionBlockSize - offsetInBlock, remainingSize);
-            Buffer.BlockCopy(src, (int) offsetInBlock, dst, dstOffset, sizeInBlock);
-            offsetInBlock = 0;
-            remainingSize -= sizeInBlock;
-            dstOffset += sizeInBlock;
+            return dst;
         }
-
-        return dst;
+        finally
+        {
+            // Dispose all cloned readers to release file handles
+            if (clonedReaders != null)
+            {
+                foreach (var clonedReader in clonedReaders)
+                {
+                    clonedReader?.Dispose();
+                }
+            }
+        }
     }
 
     private byte[] ReadPartiallyEncrypted(long offset, long length)
@@ -317,72 +331,86 @@ public partial class IoStoreReader : AbstractAesVfsReader
 
         FArchive?[]? clonedReaders = null;
 
-        for (int blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++)
+        try
         {
-            ref var compressionBlock = ref TocResource.CompressionBlocks[blockIndex];
-
-            var rawSize = compressionBlock.CompressedSize.Align(Aes.ALIGN);
-            if (compressedBuffer.Length < rawSize)
+            for (int blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++)
             {
-                compressedBuffer = new byte[rawSize];
-            }
+                ref var compressionBlock = ref TocResource.CompressionBlocks[blockIndex];
 
-            var partitionIndex = (int) ((ulong) compressionBlock.Offset / TocResource.Header.PartitionSize);
-            var partitionOffset = (long) ((ulong) compressionBlock.Offset % TocResource.Header.PartitionSize);
-            FArchive reader;
-            if (IsConcurrent)
-            {
-                clonedReaders ??= new FArchive?[ContainerStreams.Count];
-                ref var clone = ref clonedReaders[partitionIndex];
-                clone ??= (FArchive) ContainerStreams[partitionIndex].Clone();
-                reader = clone;
-            }
-            else
-                reader = ContainerStreams[partitionIndex];
-
-            reader.ReadAt(partitionOffset, compressedBuffer, 0, (int) rawSize);
-            if (IsEncrypted && limit > 0)
-            {
-                if ((int) rawSize < limit)
+                var rawSize = compressionBlock.CompressedSize.Align(Aes.ALIGN);
+                if (compressedBuffer.Length < rawSize)
                 {
-                    compressedBuffer = DecryptIfEncrypted(compressedBuffer, 0, (int) rawSize, IsEncrypted);
-                    limit -= (int) rawSize;
+                    compressedBuffer = new byte[rawSize];
+                }
+
+                var partitionIndex = (int) ((ulong) compressionBlock.Offset / TocResource.Header.PartitionSize);
+                var partitionOffset = (long) ((ulong) compressionBlock.Offset % TocResource.Header.PartitionSize);
+                FArchive reader;
+                if (IsConcurrent)
+                {
+                    clonedReaders ??= new FArchive?[ContainerStreams.Count];
+                    ref var clone = ref clonedReaders[partitionIndex];
+                    clone ??= (FArchive) ContainerStreams[partitionIndex].Clone();
+                    reader = clone;
+                }
+                else
+                    reader = ContainerStreams[partitionIndex];
+
+                reader.ReadAt(partitionOffset, compressedBuffer, 0, (int) rawSize);
+                if (IsEncrypted && limit > 0)
+                {
+                    if ((int) rawSize < limit)
+                    {
+                        compressedBuffer = DecryptIfEncrypted(compressedBuffer, 0, (int) rawSize, IsEncrypted);
+                        limit -= (int) rawSize;
+                    }
+                    else
+                    {
+                        var decrypted = DecryptIfEncrypted(compressedBuffer, 0, limit, IsEncrypted);
+                        Buffer.BlockCopy(decrypted, 0, compressedBuffer, 0, limit);
+                        limit = 0;
+                    }
+                }
+
+                byte[] src;
+                if (compressionBlock.CompressionMethodIndex == 0)
+                {
+                    src = compressedBuffer;
                 }
                 else
                 {
-                    var decrypted = DecryptIfEncrypted(compressedBuffer, 0, limit, IsEncrypted);
-                    Buffer.BlockCopy(decrypted, 0, compressedBuffer, 0, limit);
-                    limit = 0;
-                }
-            }
+                    var uncompressedSize = compressionBlock.UncompressedSize;
+                    if (uncompressedBuffer.Length < uncompressedSize)
+                    {
+                        uncompressedBuffer = new byte[uncompressedSize];
+                    }
 
-            byte[] src;
-            if (compressionBlock.CompressionMethodIndex == 0)
-            {
-                src = compressedBuffer;
-            }
-            else
-            {
-                var uncompressedSize = compressionBlock.UncompressedSize;
-                if (uncompressedBuffer.Length < uncompressedSize)
-                {
-                    uncompressedBuffer = new byte[uncompressedSize];
+                    var compressionMethod = TocResource.CompressionMethods[compressionBlock.CompressionMethodIndex];
+                    Compression.Compression.Decompress(compressedBuffer, 0, (int) compressionBlock.CompressedSize, uncompressedBuffer, 0,
+                        (int) uncompressedSize, compressionMethod, reader);
+                    src = uncompressedBuffer;
                 }
 
-                var compressionMethod = TocResource.CompressionMethods[compressionBlock.CompressionMethodIndex];
-                Compression.Compression.Decompress(compressedBuffer, 0, (int) compressionBlock.CompressedSize, uncompressedBuffer, 0,
-                    (int) uncompressedSize, compressionMethod, reader);
-                src = uncompressedBuffer;
+                var sizeInBlock = (int) Math.Min(compressionBlockSize - offsetInBlock, remainingSize);
+                Buffer.BlockCopy(src, (int) offsetInBlock, dst, dstOffset, sizeInBlock);
+                offsetInBlock = 0;
+                remainingSize -= sizeInBlock;
+                dstOffset += sizeInBlock;
             }
 
-            var sizeInBlock = (int) Math.Min(compressionBlockSize - offsetInBlock, remainingSize);
-            Buffer.BlockCopy(src, (int) offsetInBlock, dst, dstOffset, sizeInBlock);
-            offsetInBlock = 0;
-            remainingSize -= sizeInBlock;
-            dstOffset += sizeInBlock;
+            return dst;
         }
-
-        return dst;
+        finally
+        {
+            // Dispose all cloned readers to release file handles
+            if (clonedReaders != null)
+            {
+                foreach (var clonedReader in clonedReaders)
+                {
+                    clonedReader?.Dispose();
+                }
+            }
+        }
     }
 
     public override void Mount(StringComparer pathComparer)
