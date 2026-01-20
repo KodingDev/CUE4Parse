@@ -85,29 +85,31 @@ namespace CUE4Parse.FileProvider
                 mountPoint = directory.Name + '/';
             }
 
-            // In .uproject mode, we must recursively look for files
             option = uproject != null ? SearchOption.AllDirectories : option;
 
             foreach (var file in directory.EnumerateFiles("*.*", option))
             {
-                var upperExt = file.Extension.SubstringAfter('.').ToUpper();
+                if (!file.Extension.StartsWith('.'))
+                    continue;
 
-                // Only load containers if .uproject file is not found
-                if (uproject == null && upperExt is "PAK" or "UTOC")
+                var upperExt = file.Extension.AsSpan(1).ToString().ToUpperInvariant();
+
+                if (uproject == null && (upperExt == "PAK" || upperExt == "UTOC"))
                 {
-                    if (file.FullName.Contains(@"ThirdParty\CEF3\Win64\Resources") || file.FullName.Contains(@"Binaries\Win32\host")) continue;
+                    var fullName = file.FullName;
+                    if (fullName.Contains(@"ThirdParty\CEF3\Win64\Resources") || fullName.Contains(@"Binaries\Win32\host"))
+                        continue;
                     RegisterVfs(file);
                     continue;
                 }
 
-                if (upperExt is "TFC")
+                if (upperExt == "TFC")
                 {
                     RegisterTextureCache(file);
                     continue;
                 }
 
-                // Register local file only if it has a known extension, we don't need every file
-                if (!GameFile.UeKnownExtensions.Contains(upperExt, StringComparer.OrdinalIgnoreCase))
+                if (!GameFile.UeKnownExtensionsSet.Contains(upperExt))
                     continue;
 
                 var osFile = new OsGameFile(_workingDirectory, file, mountPoint, Versions);

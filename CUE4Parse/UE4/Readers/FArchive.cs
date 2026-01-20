@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -73,9 +74,36 @@ namespace CUE4Parse.UE4.Readers
         {
             CheckReadSize(length);
 
-            var result = new byte[length];
-            Read(result, 0, length);
-            return result;
+            // For small reads (<= 512 bytes), use stackalloc
+            // For medium reads (<= 8KB), use ArrayPool
+            // For large reads, allocate normally
+            if (length <= 512)
+            {
+                Span<byte> stackBuffer = stackalloc byte[length];
+                Read(stackBuffer);
+                return stackBuffer.ToArray();
+            }
+            else if (length <= 8192)
+            {
+                var pooledBuffer = ArrayPool<byte>.Shared.Rent(length);
+                try
+                {
+                    Read(pooledBuffer, 0, length);
+                    var result = new byte[length];
+                    Buffer.BlockCopy(pooledBuffer, 0, result, 0, length);
+                    return result;
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(pooledBuffer);
+                }
+            }
+            else
+            {
+                var result = new byte[length];
+                Read(result, 0, length);
+                return result;
+            }
         }
 
         public virtual byte[] ReadBytesAt(long position, int length)
@@ -104,10 +132,20 @@ namespace CUE4Parse.UE4.Readers
             var readLength = size * length;
             CheckReadSize(readLength);
 
+            if (readLength <= 512)
+            {
+                Span<byte> stackBuffer = stackalloc byte[readLength];
+                Read(stackBuffer);
+                var result = new T[length];
+                if (length > 0)
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref result[0]), ref stackBuffer[0], (uint)readLength);
+                return result;
+            }
+
             var buffer = ReadBytes(readLength);
-            var result = new T[length];
-            if (length > 0) Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref result[0]), ref buffer[0], (uint)(readLength));
-            return result;
+            var result2 = new T[length];
+            if (length > 0) Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref result2[0]), ref buffer[0], (uint)(readLength));
+            return result2;
         }
 
         public virtual void ReadArray<T>(T[] array)
@@ -116,6 +154,14 @@ namespace CUE4Parse.UE4.Readers
             var size = Unsafe.SizeOf<T>();
             var readLength = size * array.Length;
             CheckReadSize(readLength);
+
+            if (readLength <= 512)
+            {
+                Span<byte> stackBuffer = stackalloc byte[readLength];
+                Read(stackBuffer);
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref array[0]), ref stackBuffer[0], (uint)readLength);
+                return;
+            }
 
             var buffer = ReadBytes(readLength);
             Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref array[0]), ref buffer[0], (uint)(readLength));

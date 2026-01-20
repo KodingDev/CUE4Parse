@@ -54,6 +54,8 @@ namespace CUE4Parse.FileProvider
         public CustomConfigIni DefaultGame { get; }
         public CustomConfigIni DefaultEngine { get; }
 
+        private readonly ConcurrentDictionary<string, string> _fixedPathCache;
+
         public ELightUnits DefaultLightUnit { get; set; } = ELightUnits.Unitless;
 
         public ITypeMappingsProvider? MappingsContainer { get; set; }
@@ -76,6 +78,7 @@ namespace CUE4Parse.FileProvider
             TextureCachePaths = new ConcurrentDictionary<string, string>(PathComparer);
             DefaultGame = new CustomConfigIni(nameof(DefaultGame));
             DefaultEngine = new CustomConfigIni(nameof(DefaultEngine));
+            _fixedPathCache = new ConcurrentDictionary<string, string>(PathComparer);
         }
 
         private string? _gameDisplayName;
@@ -154,14 +157,22 @@ namespace CUE4Parse.FileProvider
         protected bool TryGetGameFile(string path, IReadOnlyDictionary<string, GameFile> collection, [MaybeNullWhen(false)] out GameFile file)
         {
             var fixedPath = FixPath(path);
-            if (!collection.TryGetValue(fixedPath, out file) && // any extension
-                !collection.TryGetValue(fixedPath.SubstringBeforeWithLast('.') + GameFile.UePackageExtensions[1], out file) && // umap
-                !collection.TryGetValue(path, out file)) // in case FixPath broke something
+
+            if (collection.TryGetValue(fixedPath, out file))
+                return true;
+
+            if (fixedPath.EndsWith(".uasset", StringComparison.OrdinalIgnoreCase))
             {
-                file = null;
+                var umapPath = string.Concat(fixedPath.AsSpan(0, fixedPath.Length - 6), "umap");
+                if (collection.TryGetValue(umapPath, out file))
+                    return true;
             }
 
-            return file != null;
+            if (collection.TryGetValue(path, out file))
+                return true;
+
+            file = null;
+            return false;
         }
 
         public GameFile this[string path]
@@ -172,15 +183,7 @@ namespace CUE4Parse.FileProvider
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetGameFile(string path, [MaybeNullWhen(false)] out GameFile file)
         {
-            try
-            {
-                file = this[path];
-            }
-            catch
-            {
-                file = null;
-            }
-            return file != null;
+            return TryGetGameFile(path, Files, out file);
         }
 
         public int LoadLocalization(ELanguage language = ELanguage.English, CancellationToken cancellationToken = default)
@@ -355,13 +358,18 @@ namespace CUE4Parse.FileProvider
             var regex = new Regex($"^{Regex.Escape(ProjectName)}/Plugins/.+.upluginmanifest$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             var arregex = new Regex($"^{Regex.Escape(ProjectName)}/Plugins/.*AssetRegistry.bin$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             VirtualPaths.Clear();
+
             ConcurrentBag<KeyValuePair<string, GameFile>> matchingPlugins = [];
+
             Parallel.ForEach(Files, new ParallelOptions { CancellationToken = cancellationToken }, (kvp) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                var key = kvp.Key;
+                var keySpan = key.AsSpan();
                 foreach (var suffix in pluginExtensions)
                 {
-                    if (kvp.Key.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+                    if (keySpan.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
                     {
                         matchingPlugins.Add(kvp);
                         break;
@@ -471,15 +479,18 @@ namespace CUE4Parse.FileProvider
 
         public string FixPath(string path)
         {
+            if (_fixedPathCache.TryGetValue(path, out var cached))
+                return cached;
+
+            var originalPath = path;
             path = path.Replace('\\', '/');
-            if (path[0] == '/') path = path[1..]; // remove leading slash
+            if (path.Length > 0 && path[0] == '/') path = path[1..];
 
             var lastPart = path.SubstringAfterLast('/');
-            // This part is only for FSoftObjectPaths and not really needed anymore internally, but it's still in here for user input
             if (lastPart.Contains('.') && lastPart.SubstringBefore('.') == lastPart.SubstringAfter('.'))
                 path = string.Concat(path.SubstringBeforeWithLast('/'), lastPart.SubstringBefore('.'));
-            if (path[^1] != '/' && !lastPart.Contains('.'))
-                path += "." + GameFile.UePackageExtensions[0]; // uasset
+            if (path.Length > 0 && path[^1] != '/' && !lastPart.Contains('.'))
+                path += "." + GameFile.UePackageExtensions[0];
 
             var ret = path;
             var root = path.SubstringBefore('/');
@@ -501,7 +512,6 @@ namespace CUE4Parse.FileProvider
             }
             else if (PathComparer.Equals(root, ProjectName))
             {
-                // everything should be good
             }
             else if (VirtualPaths.TryGetValue(root, out var use))
             {
@@ -512,6 +522,7 @@ namespace CUE4Parse.FileProvider
                 ret = string.Concat(ProjectName, $"/Plugins/GameFeatures/{root}/Content/", tree);
             }
 
+            _fixedPathCache.TryAdd(originalPath, ret);
             return ret;
         }
 
@@ -853,6 +864,7 @@ namespace CUE4Parse.FileProvider
             Files.Clear();
             VirtualPaths.Clear();
             Internationalization.Clear();
+            _fixedPathCache.Clear();
         }
     }
 }

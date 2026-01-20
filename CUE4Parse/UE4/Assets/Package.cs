@@ -95,10 +95,11 @@ namespace CUE4Parse.UE4.Assets
 
             if (Summary.ThumbnailTableOffset > 0)
             {
-                EditorThumbnails = new List<byte[]>();
                 uassetAr.SeekAbsolute(Summary.ThumbnailTableOffset, SeekOrigin.Begin);
                 var count = uassetAr.Read<int>();
 
+                // Pre-allocate with known capacity to avoid resizing
+                EditorThumbnails = new List<byte[]>(count);
                 var thumbnailOffsets = new List<int>(count);
 
                 for (int i = 0; i < count; i++)
@@ -190,9 +191,12 @@ namespace CUE4Parse.UE4.Assets
 
             if (useLazySerialization)
             {
+                // Capture uexpAr outside loop to avoid repeated closure allocations
+                var exportArchive = uexpAr;
                 for (var i = 0; i < ExportsLazy.Length; i++)
                 {
                     var export = ExportMap[i];
+                    var exportIndex = i; // Capture index for closure
                     ExportsLazy[i] = new Lazy<UObject>(() =>
                     {
                         // Create
@@ -203,8 +207,8 @@ namespace CUE4Parse.UE4.Assets
                         obj.Template = ResolvePackageIndex(export.TemplateIndex) as ResolvedExportObject;
                         obj.Flags |= (EObjectFlags) export.ObjectFlags; // We give loaded objects the RF_WasLoaded flag in ConstructObject, so don't remove it again in here
 
-                        // Serialize
-                        var Ar = (FAssetArchive) uexpAr.Clone();
+                        // Serialize - clone archive for thread safety
+                        var Ar = (FAssetArchive) exportArchive.Clone();
                         Ar.SeekAbsolute(export.SerialOffset, SeekOrigin.Begin);
                         DeserializeObject(obj, Ar, export.SerialSize);
                         // TODO right place ???
