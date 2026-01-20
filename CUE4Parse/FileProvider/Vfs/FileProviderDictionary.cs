@@ -24,7 +24,6 @@ namespace CUE4Parse.FileProvider.Vfs
         private readonly ValueEnumerable _values;
         public IEnumerable<GameFile> Values => _values;
 
-        // Cache the sorted indices to avoid repeated sorting on every lookup
         private volatile KeyValuePair<long, IReadOnlyDictionary<string, GameFile>>[]? _sortedIndicesCache;
         private readonly object _sortCacheLock = new object();
 
@@ -37,15 +36,12 @@ namespace CUE4Parse.FileProvider.Vfs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private KeyValuePair<long, IReadOnlyDictionary<string, GameFile>>[] GetSortedIndices()
         {
-            // Fast path - return cached sorted indices if available
             var cache = _sortedIndicesCache;
             if (cache != null)
                 return cache;
 
-            // Slow path - build and cache sorted indices
             lock (_sortCacheLock)
             {
-                // Double-check after acquiring lock
                 cache = _sortedIndicesCache;
                 if (cache != null)
                     return cache;
@@ -62,7 +58,6 @@ namespace CUE4Parse.FileProvider.Vfs
             _sortedIndicesCache = null;
         }
 
-        // Cache empty readonly list to avoid allocation on every call
         private static readonly IReadOnlyList<GameFile> _emptyGameFileList = new List<GameFile>().AsReadOnly();
 
         public void FindPayloads(GameFile file, out GameFile? uexp, out IReadOnlyList<GameFile> ubulks, out IReadOnlyList<GameFile> uptnls, bool cookedIndexLookup = false)
@@ -125,7 +120,6 @@ namespace CUE4Parse.FileProvider.Vfs
                 }
             }
             _indicesBag.Add(new KeyValuePair<long, IReadOnlyDictionary<string, GameFile>>(readOrder, newFiles));
-            // Invalidate cache when new files are added
             InvalidateSortCache();
         }
 

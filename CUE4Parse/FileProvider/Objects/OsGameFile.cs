@@ -23,15 +23,12 @@ namespace CUE4Parse.FileProvider.Objects
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override byte[] Read(FByteBulkDataHeader? header = null) => File.ReadAllBytes(ActualFile.FullName);
 
-        // Override CreateReader to use streaming instead of loading entire file into memory
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override FArchive CreateReader(FByteBulkDataHeader? header = null)
         {
-            // Use buffered FileStream for better performance on sequential reads
             var stream = new BufferedStream(
                 ActualFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
-                81920 // 80KB buffer
-            );
+                81920);
             return new FStreamArchive(Path, stream, Versions);
         }
     }

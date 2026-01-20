@@ -54,7 +54,6 @@ namespace CUE4Parse.FileProvider
         public CustomConfigIni DefaultGame { get; }
         public CustomConfigIni DefaultEngine { get; }
 
-        // Cache for FixPath results to avoid repeated string operations
         private readonly ConcurrentDictionary<string, string> _fixedPathCache;
 
         public ELightUnits DefaultLightUnit { get; set; } = ELightUnits.Unitless;
@@ -159,11 +158,9 @@ namespace CUE4Parse.FileProvider
         {
             var fixedPath = FixPath(path);
 
-            // Fast path: try the fixed path first (most common case)
             if (collection.TryGetValue(fixedPath, out file))
                 return true;
 
-            // Try .umap variant only if the fixed path ends with .uasset
             if (fixedPath.EndsWith(".uasset", StringComparison.OrdinalIgnoreCase))
             {
                 var umapPath = string.Concat(fixedPath.AsSpan(0, fixedPath.Length - 6), "umap");
@@ -171,7 +168,6 @@ namespace CUE4Parse.FileProvider
                     return true;
             }
 
-            // Fallback: try original path in case FixPath broke something
             if (collection.TryGetValue(path, out file))
                 return true;
 
@@ -187,7 +183,6 @@ namespace CUE4Parse.FileProvider
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetGameFile(string path, [MaybeNullWhen(false)] out GameFile file)
         {
-            // Use direct TryGetGameFile instead of exception-based control flow
             return TryGetGameFile(path, Files, out file);
         }
 
@@ -364,15 +359,12 @@ namespace CUE4Parse.FileProvider
             var arregex = new Regex($"^{Regex.Escape(ProjectName)}/Plugins/.*AssetRegistry.bin$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             VirtualPaths.Clear();
 
-            // Pre-allocate with reasonable capacity to avoid resizing
             ConcurrentBag<KeyValuePair<string, GameFile>> matchingPlugins = [];
 
-            // Optimize: check extension match more efficiently
             Parallel.ForEach(Files, new ParallelOptions { CancellationToken = cancellationToken }, (kvp) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Fast path: check last part of path for plugin extensions
                 var key = kvp.Key;
                 var keySpan = key.AsSpan();
                 foreach (var suffix in pluginExtensions)
@@ -487,20 +479,18 @@ namespace CUE4Parse.FileProvider
 
         public string FixPath(string path)
         {
-            // Check cache first - this is a hot path called on every file lookup
             if (_fixedPathCache.TryGetValue(path, out var cached))
                 return cached;
 
             var originalPath = path;
             path = path.Replace('\\', '/');
-            if (path.Length > 0 && path[0] == '/') path = path[1..]; // remove leading slash
+            if (path.Length > 0 && path[0] == '/') path = path[1..];
 
             var lastPart = path.SubstringAfterLast('/');
-            // This part is only for FSoftObjectPaths and not really needed anymore internally, but it's still in here for user input
             if (lastPart.Contains('.') && lastPart.SubstringBefore('.') == lastPart.SubstringAfter('.'))
                 path = string.Concat(path.SubstringBeforeWithLast('/'), lastPart.SubstringBefore('.'));
             if (path.Length > 0 && path[^1] != '/' && !lastPart.Contains('.'))
-                path += "." + GameFile.UePackageExtensions[0]; // uasset
+                path += "." + GameFile.UePackageExtensions[0];
 
             var ret = path;
             var root = path.SubstringBefore('/');
@@ -522,7 +512,6 @@ namespace CUE4Parse.FileProvider
             }
             else if (PathComparer.Equals(root, ProjectName))
             {
-                // everything should be good
             }
             else if (VirtualPaths.TryGetValue(root, out var use))
             {
@@ -533,7 +522,6 @@ namespace CUE4Parse.FileProvider
                 ret = string.Concat(ProjectName, $"/Plugins/GameFeatures/{root}/Content/", tree);
             }
 
-            // Cache the result for future lookups
             _fixedPathCache.TryAdd(originalPath, ret);
             return ret;
         }

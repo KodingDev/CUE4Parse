@@ -85,21 +85,17 @@ namespace CUE4Parse.FileProvider
                 mountPoint = directory.Name + '/';
             }
 
-            // In .uproject mode, we must recursively look for files
             option = uproject != null ? SearchOption.AllDirectories : option;
 
             foreach (var file in directory.EnumerateFiles("*.*", option))
             {
-                // Early check: skip if no extension
                 if (!file.Extension.StartsWith('.'))
                     continue;
 
                 var upperExt = file.Extension.AsSpan(1).ToString().ToUpperInvariant();
 
-                // Only load containers if .uproject file is not found
                 if (uproject == null && (upperExt == "PAK" || upperExt == "UTOC"))
                 {
-                    // Fast path check: skip known bad paths
                     var fullName = file.FullName;
                     if (fullName.Contains(@"ThirdParty\CEF3\Win64\Resources") || fullName.Contains(@"Binaries\Win32\host"))
                         continue;
@@ -113,7 +109,6 @@ namespace CUE4Parse.FileProvider
                     continue;
                 }
 
-                // Use HashSet for O(1) lookup instead of Contains with linear search
                 if (!GameFile.UeKnownExtensionsSet.Contains(upperExt))
                     continue;
 

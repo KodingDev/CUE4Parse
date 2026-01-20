@@ -132,7 +132,6 @@ namespace CUE4Parse.UE4.Readers
             var readLength = size * length;
             CheckReadSize(readLength);
 
-            // For small arrays, use stackalloc to avoid heap allocation
             if (readLength <= 512)
             {
                 Span<byte> stackBuffer = stackalloc byte[readLength];
@@ -156,7 +155,6 @@ namespace CUE4Parse.UE4.Readers
             var readLength = size * array.Length;
             CheckReadSize(readLength);
 
-            // For small arrays, use stackalloc to avoid intermediate buffer allocation
             if (readLength <= 512)
             {
                 Span<byte> stackBuffer = stackalloc byte[readLength];

@@ -60,8 +60,7 @@ namespace CUE4Parse.Compression
                     OodleHelper.Decompress(compressed, compressedOffset, compressedSize, uncompressed, uncompressedOffset, uncompressedSize, reader);
                     return;
                 case CompressionMethod.LZ4:
-                    // Use ArrayPool to avoid allocating temporary buffer on every decompression
-                    var bufferSize = uncompressedSize + uncompressedSize / 255 + 16; // LZ4_compressBound(uncompressedSize)
+                    var bufferSize = uncompressedSize + uncompressedSize / 255 + 16;
                     var uncompressedBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
                     try
                     {
