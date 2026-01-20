@@ -62,10 +62,13 @@ namespace CUE4Parse.FileProvider.Vfs
             _sortedIndicesCache = null;
         }
 
+        // Cache empty readonly list to avoid allocation on every call
+        private static readonly IReadOnlyList<GameFile> _emptyGameFileList = new List<GameFile>().AsReadOnly();
+
         public void FindPayloads(GameFile file, out GameFile? uexp, out IReadOnlyList<GameFile> ubulks, out IReadOnlyList<GameFile> uptnls, bool cookedIndexLookup = false)
         {
             uexp = null;
-            ubulks = uptnls = new List<GameFile>().AsReadOnly();
+            ubulks = uptnls = _emptyGameFileList;
             if (!file.IsUePackage) return;
 
             var ubulkList = new List<GameFile>();
