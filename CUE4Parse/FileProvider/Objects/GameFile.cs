@@ -65,6 +65,7 @@ public abstract class GameFile
     }
     public long Size { get; protected init; }
 
+    // Cache frequently accessed path properties for better performance
     public string Directory => _directory ??= Path.SubstringBeforeLast('/');
     public string PathWithoutExtension => _pathWithoutExtension ??= Path.SubstringBeforeLast('.');
     public string Name => _name ??= Path.SubstringAfterLast('/');
