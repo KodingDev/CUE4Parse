@@ -54,6 +54,9 @@ namespace CUE4Parse.FileProvider
         public CustomConfigIni DefaultGame { get; }
         public CustomConfigIni DefaultEngine { get; }
 
+        // Cache for FixPath results to avoid repeated string operations
+        private readonly ConcurrentDictionary<string, string> _fixedPathCache;
+
         public ELightUnits DefaultLightUnit { get; set; } = ELightUnits.Unitless;
 
         public ITypeMappingsProvider? MappingsContainer { get; set; }
@@ -76,6 +79,7 @@ namespace CUE4Parse.FileProvider
             TextureCachePaths = new ConcurrentDictionary<string, string>(PathComparer);
             DefaultGame = new CustomConfigIni(nameof(DefaultGame));
             DefaultEngine = new CustomConfigIni(nameof(DefaultEngine));
+            _fixedPathCache = new ConcurrentDictionary<string, string>(PathComparer);
         }
 
         private string? _gameDisplayName;
@@ -471,14 +475,19 @@ namespace CUE4Parse.FileProvider
 
         public string FixPath(string path)
         {
+            // Check cache first - this is a hot path called on every file lookup
+            if (_fixedPathCache.TryGetValue(path, out var cached))
+                return cached;
+
+            var originalPath = path;
             path = path.Replace('\\', '/');
-            if (path[0] == '/') path = path[1..]; // remove leading slash
+            if (path.Length > 0 && path[0] == '/') path = path[1..]; // remove leading slash
 
             var lastPart = path.SubstringAfterLast('/');
             // This part is only for FSoftObjectPaths and not really needed anymore internally, but it's still in here for user input
             if (lastPart.Contains('.') && lastPart.SubstringBefore('.') == lastPart.SubstringAfter('.'))
                 path = string.Concat(path.SubstringBeforeWithLast('/'), lastPart.SubstringBefore('.'));
-            if (path[^1] != '/' && !lastPart.Contains('.'))
+            if (path.Length > 0 && path[^1] != '/' && !lastPart.Contains('.'))
                 path += "." + GameFile.UePackageExtensions[0]; // uasset
 
             var ret = path;
@@ -512,6 +521,8 @@ namespace CUE4Parse.FileProvider
                 ret = string.Concat(ProjectName, $"/Plugins/GameFeatures/{root}/Content/", tree);
             }
 
+            // Cache the result for future lookups
+            _fixedPathCache.TryAdd(originalPath, ret);
             return ret;
         }
 
@@ -853,6 +864,7 @@ namespace CUE4Parse.FileProvider
             Files.Clear();
             VirtualPaths.Clear();
             Internationalization.Clear();
+            _fixedPathCache.Clear();
         }
     }
 }

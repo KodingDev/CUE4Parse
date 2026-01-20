@@ -42,7 +42,7 @@ public class FStreamArchive : FArchive
         return _baseStream switch
         {
             ICloneable cloneable => new FStreamArchive(Name, (Stream) cloneable.Clone(), Versions) {Position = Position},
-            FileStream fileStream => new FStreamArchive(Name, File.Open(fileStream.Name, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Versions) {Position = Position},
+            FileStream fileStream => new FStreamArchive(Name, new BufferedStream(File.Open(fileStream.Name, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), 81920), Versions) {Position = Position},
             _ => new FStreamArchive(Name, _baseStream, Versions) {Position = Position}
         };
     }

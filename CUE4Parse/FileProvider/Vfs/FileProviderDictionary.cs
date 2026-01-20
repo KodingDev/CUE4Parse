@@ -24,10 +24,42 @@ namespace CUE4Parse.FileProvider.Vfs
         private readonly ValueEnumerable _values;
         public IEnumerable<GameFile> Values => _values;
 
+        // Cache the sorted indices to avoid repeated sorting on every lookup
+        private volatile KeyValuePair<long, IReadOnlyDictionary<string, GameFile>>[]? _sortedIndicesCache;
+        private readonly object _sortCacheLock = new object();
+
         public FileProviderDictionary()
         {
             _keys = new KeyEnumerable(this);
             _values = new ValueEnumerable(this);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private KeyValuePair<long, IReadOnlyDictionary<string, GameFile>>[] GetSortedIndices()
+        {
+            // Fast path - return cached sorted indices if available
+            var cache = _sortedIndicesCache;
+            if (cache != null)
+                return cache;
+
+            // Slow path - build and cache sorted indices
+            lock (_sortCacheLock)
+            {
+                // Double-check after acquiring lock
+                cache = _sortedIndicesCache;
+                if (cache != null)
+                    return cache;
+
+                cache = _indicesBag.OrderByDescending(kvp => kvp.Key).ToArray();
+                _sortedIndicesCache = cache;
+                return cache;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void InvalidateSortCache()
+        {
+            _sortedIndicesCache = null;
         }
 
         public void FindPayloads(GameFile file, out GameFile? uexp, out IReadOnlyList<GameFile> ubulks, out IReadOnlyList<GameFile> uptnls, bool cookedIndexLookup = false)
@@ -90,6 +122,8 @@ namespace CUE4Parse.FileProvider.Vfs
                 }
             }
             _indicesBag.Add(new KeyValuePair<long, IReadOnlyDictionary<string, GameFile>>(readOrder, newFiles));
+            // Invalidate cache when new files are added
+            InvalidateSortCache();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -97,12 +131,14 @@ namespace CUE4Parse.FileProvider.Vfs
         {
             _indicesBag.Clear();
             _byId.Clear();
+            InvalidateSortCache();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ContainsKey(string key)
         {
-            foreach (var files in _indicesBag)
+            var sortedIndices = GetSortedIndices();
+            foreach (var files in sortedIndices)
             {
                 if (files.Value.ContainsKey(key))
                     return true;
@@ -114,7 +150,8 @@ namespace CUE4Parse.FileProvider.Vfs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(string key, [MaybeNullWhen(false)] out GameFile value)
         {
-            foreach (var files in _indicesBag.OrderByDescending(kvp => kvp.Key))
+            var sortedIndices = GetSortedIndices();
+            foreach (var files in sortedIndices)
             {
                 if (files.Value.TryGetValue(key, out value))
                     return true;
@@ -128,7 +165,8 @@ namespace CUE4Parse.FileProvider.Vfs
         public bool TryGetValues(string key, out List<GameFile> values)
         {
             values = [];
-            foreach (var files in _indicesBag.OrderByDescending(kvp => kvp.Key))
+            var sortedIndices = GetSortedIndices();
+            foreach (var files in sortedIndices)
             {
                 if (files.Value.TryGetValue(key, out var value))
                 {
@@ -143,7 +181,8 @@ namespace CUE4Parse.FileProvider.Vfs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IEnumerator<KeyValuePair<string, GameFile>> GetEnumerator()
         {
-            foreach (var index in _indicesBag.OrderByDescending(kvp => kvp.Key))
+            var sortedIndices = GetSortedIndices();
+            foreach (var index in sortedIndices)
             {
                 foreach (var entry in index.Value)
                 {
@@ -168,7 +207,8 @@ namespace CUE4Parse.FileProvider.Vfs
 
             public IEnumerator<string> GetEnumerator()
             {
-                foreach (var index in _orig._indicesBag.OrderByDescending(kvp => kvp.Key))
+                var sortedIndices = _orig.GetSortedIndices();
+                foreach (var index in sortedIndices)
                 {
                     foreach (var key in index.Value.Keys)
                     {
@@ -191,7 +231,8 @@ namespace CUE4Parse.FileProvider.Vfs
 
             public IEnumerator<GameFile> GetEnumerator()
             {
-                foreach (var index in _orig._indicesBag.OrderByDescending(kvp => kvp.Key))
+                var sortedIndices = _orig.GetSortedIndices();
+                foreach (var index in sortedIndices)
                 {
                     foreach (var key in index.Value.Values)
                     {
