@@ -187,15 +187,8 @@ namespace CUE4Parse.FileProvider
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetGameFile(string path, [MaybeNullWhen(false)] out GameFile file)
         {
-            try
-            {
-                file = this[path];
-            }
-            catch
-            {
-                file = null;
-            }
-            return file != null;
+            // Use direct TryGetGameFile instead of exception-based control flow
+            return TryGetGameFile(path, Files, out file);
         }
 
         public int LoadLocalization(ELanguage language = ELanguage.English, CancellationToken cancellationToken = default)

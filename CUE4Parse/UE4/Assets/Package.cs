@@ -95,10 +95,11 @@ namespace CUE4Parse.UE4.Assets
 
             if (Summary.ThumbnailTableOffset > 0)
             {
-                EditorThumbnails = new List<byte[]>();
                 uassetAr.SeekAbsolute(Summary.ThumbnailTableOffset, SeekOrigin.Begin);
                 var count = uassetAr.Read<int>();
 
+                // Pre-allocate with known capacity to avoid resizing
+                EditorThumbnails = new List<byte[]>(count);
                 var thumbnailOffsets = new List<int>(count);
 
                 for (int i = 0; i < count; i++)
