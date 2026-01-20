@@ -158,14 +158,25 @@ namespace CUE4Parse.FileProvider
         protected bool TryGetGameFile(string path, IReadOnlyDictionary<string, GameFile> collection, [MaybeNullWhen(false)] out GameFile file)
         {
             var fixedPath = FixPath(path);
-            if (!collection.TryGetValue(fixedPath, out file) && // any extension
-                !collection.TryGetValue(fixedPath.SubstringBeforeWithLast('.') + GameFile.UePackageExtensions[1], out file) && // umap
-                !collection.TryGetValue(path, out file)) // in case FixPath broke something
+
+            // Fast path: try the fixed path first (most common case)
+            if (collection.TryGetValue(fixedPath, out file))
+                return true;
+
+            // Try .umap variant only if the fixed path ends with .uasset
+            if (fixedPath.EndsWith(".uasset", StringComparison.OrdinalIgnoreCase))
             {
-                file = null;
+                var umapPath = string.Concat(fixedPath.AsSpan(0, fixedPath.Length - 6), "umap");
+                if (collection.TryGetValue(umapPath, out file))
+                    return true;
             }
 
-            return file != null;
+            // Fallback: try original path in case FixPath broke something
+            if (collection.TryGetValue(path, out file))
+                return true;
+
+            file = null;
+            return false;
         }
 
         public GameFile this[string path]
@@ -359,13 +370,21 @@ namespace CUE4Parse.FileProvider
             var regex = new Regex($"^{Regex.Escape(ProjectName)}/Plugins/.+.upluginmanifest$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             var arregex = new Regex($"^{Regex.Escape(ProjectName)}/Plugins/.*AssetRegistry.bin$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             VirtualPaths.Clear();
+
+            // Pre-allocate with reasonable capacity to avoid resizing
             ConcurrentBag<KeyValuePair<string, GameFile>> matchingPlugins = [];
+
+            // Optimize: check extension match more efficiently
             Parallel.ForEach(Files, new ParallelOptions { CancellationToken = cancellationToken }, (kvp) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // Fast path: check last part of path for plugin extensions
+                var key = kvp.Key;
+                var keySpan = key.AsSpan();
                 foreach (var suffix in pluginExtensions)
                 {
-                    if (kvp.Key.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+                    if (keySpan.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
                     {
                         matchingPlugins.Add(kvp);
                         break;

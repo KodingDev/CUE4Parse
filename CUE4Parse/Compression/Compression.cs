@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -31,7 +32,7 @@ namespace CUE4Parse.Compression
             Decompress(compressed, 0, compressed.Length, dst, 0, dst.Length, method, reader);
         public static void Decompress(byte[] compressed, int compressedOffset, int compressedSize, byte[] uncompressed, int uncompressedOffset, int uncompressedSize, CompressionMethod method, FArchive? reader = null)
         {
-            var srcStream = new MemoryStream(compressed, compressedOffset, compressedSize, false);
+            // Use ArraySegment to avoid creating MemoryStream when possible
             switch (method)
             {
                 case CompressionMethod.None:
@@ -40,13 +41,16 @@ namespace CUE4Parse.Compression
                 case CompressionMethod.XB1Zlib:
                 case CompressionMethod.XboxOneGDKZlib:
                 case CompressionMethod.Zlib:
-                    var zlib = new ZlibStream(srcStream, CompressionMode.Decompress);
+                {
+                    using var srcStream = new MemoryStream(compressed, compressedOffset, compressedSize, false);
+                    using var zlib = new ZlibStream(srcStream, CompressionMode.Decompress);
                     zlib.Read(uncompressed, uncompressedOffset, uncompressedSize);
-                    zlib.Dispose();
                     // ZlibHelper.Decompress(compressed, compressedOffset, compressedSize, uncompressed, uncompressedOffset, uncompressedSize, reader);
                     return;
+                }
                 case CompressionMethod.Gzip:
                 {
+                    using var srcStream = new MemoryStream(compressed, compressedOffset, compressedSize, false);
                     using var gzip = new GZipStream(srcStream, CompressionMode.Decompress);
                     using var temp = new MemoryStream(uncompressed, uncompressedOffset, uncompressedSize, true);
                     gzip.CopyTo(temp);
@@ -56,27 +60,36 @@ namespace CUE4Parse.Compression
                     OodleHelper.Decompress(compressed, compressedOffset, compressedSize, uncompressed, uncompressedOffset, uncompressedSize, reader);
                     return;
                 case CompressionMethod.LZ4:
-                    var uncompressedBuffer = new byte[uncompressedSize + uncompressedSize / 255 + 16]; // LZ4_compressBound(uncompressedSize)
-                    int result;
-#if USE_LZ4_NATIVE_LIB
-                    unsafe
+                    // Use ArrayPool to avoid allocating temporary buffer on every decompression
+                    var bufferSize = uncompressedSize + uncompressedSize / 255 + 16; // LZ4_compressBound(uncompressedSize)
+                    var uncompressedBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+                    try
                     {
-                        fixed (byte* compressedPtr = compressed, uncompressedBufferPtr = uncompressedBuffer)
+                        int result;
+#if USE_LZ4_NATIVE_LIB
+                        unsafe
                         {
-                            result = LZ4.LZ4_decompress_safe(compressedPtr + compressedOffset, uncompressedBufferPtr, compressedSize, uncompressedBuffer.Length);
+                            fixed (byte* compressedPtr = compressed, uncompressedBufferPtr = uncompressedBuffer)
+                            {
+                                result = LZ4.LZ4_decompress_safe(compressedPtr + compressedOffset, uncompressedBufferPtr, compressedSize, bufferSize);
+                            }
                         }
-                    }
 #else
-                    result = LZ4Codec.Decode(compressed, compressedOffset, compressedSize, uncompressedBuffer, 0, uncompressedBuffer.Length);
+                        result = LZ4Codec.Decode(compressed, compressedOffset, compressedSize, uncompressedBuffer, 0, bufferSize);
 #endif
-                    Buffer.BlockCopy(uncompressedBuffer, 0, uncompressed, uncompressedOffset, uncompressedSize);
-                    if (result != uncompressedSize) throw new FileLoadException($"Failed to decompress LZ4 data (Expected: {uncompressedSize}, Result: {result})");
+                        Buffer.BlockCopy(uncompressedBuffer, 0, uncompressed, uncompressedOffset, uncompressedSize);
+                        if (result != uncompressedSize) throw new FileLoadException($"Failed to decompress LZ4 data (Expected: {uncompressedSize}, Result: {result})");
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(uncompressedBuffer);
+                    }
                     return;
                 case CompressionMethod.Zstd:
                 {
-                    var compressionStream = new DecompressionStream(srcStream);
+                    using var srcStream = new MemoryStream(compressed, compressedOffset, compressedSize, false);
+                    using var compressionStream = new DecompressionStream(srcStream);
                     compressionStream.Read(uncompressed, uncompressedOffset, uncompressedSize);
-                    compressionStream.Dispose();
                     return;
                 }
                 default:

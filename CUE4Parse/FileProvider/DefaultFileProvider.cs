@@ -90,24 +90,31 @@ namespace CUE4Parse.FileProvider
 
             foreach (var file in directory.EnumerateFiles("*.*", option))
             {
-                var upperExt = file.Extension.SubstringAfter('.').ToUpper();
+                // Early check: skip if no extension
+                if (!file.Extension.StartsWith('.'))
+                    continue;
+
+                var upperExt = file.Extension.AsSpan(1).ToString().ToUpperInvariant();
 
                 // Only load containers if .uproject file is not found
-                if (uproject == null && upperExt is "PAK" or "UTOC")
+                if (uproject == null && (upperExt == "PAK" || upperExt == "UTOC"))
                 {
-                    if (file.FullName.Contains(@"ThirdParty\CEF3\Win64\Resources") || file.FullName.Contains(@"Binaries\Win32\host")) continue;
+                    // Fast path check: skip known bad paths
+                    var fullName = file.FullName;
+                    if (fullName.Contains(@"ThirdParty\CEF3\Win64\Resources") || fullName.Contains(@"Binaries\Win32\host"))
+                        continue;
                     RegisterVfs(file);
                     continue;
                 }
 
-                if (upperExt is "TFC")
+                if (upperExt == "TFC")
                 {
                     RegisterTextureCache(file);
                     continue;
                 }
 
-                // Register local file only if it has a known extension, we don't need every file
-                if (!GameFile.UeKnownExtensions.Contains(upperExt, StringComparer.OrdinalIgnoreCase))
+                // Use HashSet for O(1) lookup instead of Contains with linear search
+                if (!GameFile.UeKnownExtensionsSet.Contains(upperExt))
                     continue;
 
                 var osFile = new OsGameFile(_workingDirectory, file, mountPoint, Versions);
