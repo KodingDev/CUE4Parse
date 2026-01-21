@@ -1,0 +1,26 @@
+# Binaries
+reader
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*.pak
+*.utoc
+*.ucas
+testdata/
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
