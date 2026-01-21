@@ -1,5 +1,7 @@
-# Binaries
-reader
+# Binaries (at root only, not cmd/reader directory)
+/reader
+reader-lambda
+reader-darwin
 *.exe
 *.dll
 *.so
