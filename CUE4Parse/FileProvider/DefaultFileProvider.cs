@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using CUE4Parse.FileProvider.Objects;
 using CUE4Parse.FileProvider.Vfs;
+using CUE4Parse.UE4.IO;
 using CUE4Parse.UE4.Versions;
 using CUE4Parse.Utils;
 
@@ -85,31 +87,36 @@ namespace CUE4Parse.FileProvider
                 mountPoint = directory.Name + '/';
             }
 
+            // In .uproject mode, we must recursively look for files
             option = uproject != null ? SearchOption.AllDirectories : option;
 
             foreach (var file in directory.EnumerateFiles("*.*", option))
             {
-                if (!file.Extension.StartsWith('.'))
-                    continue;
+                var upperExt = file.Extension.SubstringAfter('.').ToUpper();
 
-                var upperExt = file.Extension.AsSpan(1).ToString().ToUpperInvariant();
-
-                if (uproject == null && (upperExt == "PAK" || upperExt == "UTOC"))
+                // Only load containers if .uproject file is not found
+                if (uproject is null && upperExt is "PAK" or "UTOC")
                 {
-                    var fullName = file.FullName;
-                    if (fullName.Contains(@"ThirdParty\CEF3\Win64\Resources") || fullName.Contains(@"Binaries\Win32\host"))
-                        continue;
+                    if (file.FullName.Contains(@"ThirdParty\CEF3\Win64\Resources") || file.FullName.Contains(@"Binaries\Win32\host")) continue;
                     RegisterVfs(file);
                     continue;
                 }
 
-                if (upperExt == "TFC")
+                if (uproject is null && OnDemandOptions is not null && upperExt is "UONDEMANDTOC")
+                {
+                    var ioChunkTok = new IoChunkToc(file.FullName);
+                    RegisterVfs(ioChunkTok, OnDemandOptions);
+                    continue;
+                }
+
+                if (upperExt is "TFC")
                 {
                     RegisterTextureCache(file);
                     continue;
                 }
 
-                if (!GameFile.UeKnownExtensionsSet.Contains(upperExt))
+                // Register local file only if it has a known extension, we don't need every file
+                if (!GameFile.UeKnownExtensions.Contains(upperExt, StringComparer.OrdinalIgnoreCase))
                     continue;
 
                 var osFile = new OsGameFile(_workingDirectory, file, mountPoint, Versions);
